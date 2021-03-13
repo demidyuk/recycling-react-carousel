@@ -1,0 +1,7 @@
+*.log
+.npmrc
+.DS_Store
+node_modules
+.cache
+dist
+test-config/setupPointerEvent.js

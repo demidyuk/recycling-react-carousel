@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.build.json",
+  "include": ["src", "types", "stories"],
+  "exclude": [],
+  "compilerOptions": {
+    "rootDir": "./",
+    "baseUrl": "./",
+    "paths": {
+      "recycling-react-carousel": ["src"]
+    }
+  }
+}
