@@ -26,14 +26,19 @@ jobs:
       - name: Test
         run: yarn test --ci --coverage --maxWorkers=2
 
-      - name: Build
+      - name: Build lib
         run: yarn build
 
-      - name: Upload build
+      - name: Build storybook
+        run: yarn build-storybook
+        
+      - name: Upload builds
         uses: actions/upload-artifact@v2
         with:
-          name: build
-          path: ./dist
+          name: builds
+          path: |
+            ./dist
+            ./storybook-static
   release:
     name: Release
     needs: build
@@ -44,16 +49,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v1
-        with:
-          node-version: 14
-
-      - name: Download build
+      - name: Download builds
         uses: actions/download-artifact@v2
         with:
-          name: build
-          path: ./dist
+          name: builds
 
       - name: Semantic Release
         uses: cycjimmy/semantic-release-action@v2
@@ -64,3 +63,25 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+  storybook:
+    name: Storybook
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+
+      - name: Download builds
+        uses: actions/download-artifact@v2
+        with:
+          name: builds
+
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@4.1.0
+        with:
+          branch: gh-pages
+          folder: storybook-static
+          clean: true
+          target-folder: storybook
