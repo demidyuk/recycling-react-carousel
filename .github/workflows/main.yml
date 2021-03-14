@@ -81,7 +81,7 @@ jobs:
     name: Storybook
     needs: build
     runs-on: ubuntu-20.04
-    if: github.ref == 'refs/heads/master
+    if: github.ref == 'refs/heads/master'
     steps:
       - name: Checkout
         uses: actions/checkout@v2
