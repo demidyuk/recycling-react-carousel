@@ -24,6 +24,8 @@ export interface RCarouselProps extends React.HTMLAttributes<HTMLDivElement> {
   gestures?: boolean;
   y?: boolean;
   infinite?: boolean;
+  alignCenter?: boolean;
+  fitContent?: boolean;
   onNextSwipe?: () => void;
   onPrevSwipe?: () => void;
   onCursorChange?: (cursor: number) => void;
@@ -42,6 +44,8 @@ const RCarousel: React.FC<RCarouselProps> = ({
   gestures = true,
   y = false,
   infinite = false,
+  alignCenter = true,
+  fitContent = false,
   onNextSwipe = () => void 0,
   onPrevSwipe = () => void 0,
   onCursorChange = () => void 0,
@@ -76,6 +80,12 @@ const RCarousel: React.FC<RCarouselProps> = ({
   const itemSizePercents = visibleItemsCount ? 1 / visibleItemsCount : 0;
 
   infinite = infinite && childrenCount >= visibleItemsCount;
+
+  let alignWrapperClass: string;
+
+  if (alignCenter) {
+    alignWrapperClass = x ? styles.alignCenterY : styles.alignCenterX;
+  }
 
   const clamp = useCallback(
     (cursor) => {
@@ -185,8 +195,9 @@ const RCarousel: React.FC<RCarouselProps> = ({
                 style={itemWrapperStyle}
                 className={classNames([
                   styles.childWrapper,
-                  styles.w100,
-                  styles.h100,
+                  x ? styles.w100 : styles.h100,
+                  !fitContent && (x ? styles.h100 : styles.w100),
+                  alignWrapperClass,
                   itemWrapperClass,
                 ])}
               >
