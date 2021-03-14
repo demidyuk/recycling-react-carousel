@@ -1,5 +1,5 @@
 name: main
-on: [push, pull_request]
+on: [push]
 jobs:
   build:
     name: Build, lint, and test on Node ${{ matrix.node }} and ${{ matrix.os }}
@@ -7,7 +7,7 @@ jobs:
     strategy:
       matrix:
         node: ['14.x']
-        os: [ubuntu-latest]
+        os: [ubuntu-20.04, windows-latest]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -17,10 +17,23 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
 
+      - name: Get npm cache directory
+        id: npm-cache
+        run: |
+          echo "::set-output name=dir::$(npm config get cache)"
+
+      - uses: actions/cache@v2
+        with:
+          path: ${{ steps.npm-cache.outputs.dir }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
       - name: Install deps
         run: npm ci
 
       - name: Lint
+        if: matrix.os == 'ubuntu-20.04'
         run: yarn lint
 
       - name: Test
@@ -33,6 +46,7 @@ jobs:
         run: yarn build-storybook
 
       - name: Upload builds
+        if: matrix.os == 'ubuntu-20.04'
         uses: actions/upload-artifact@v2
         with:
           name: builds
@@ -42,7 +56,7 @@ jobs:
   release:
     name: Release
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -66,7 +80,8 @@ jobs:
   storybook:
     name: Storybook
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
+    if: github.ref == 'refs/heads/master
     steps:
       - name: Checkout
         uses: actions/checkout@v2
