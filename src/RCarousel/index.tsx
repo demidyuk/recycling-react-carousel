@@ -49,9 +49,10 @@ const RCarousel: React.FC<RCarouselProps> = ({
   onVisibleActorsChange = () => void 0,
   ...rest
 }) => {
+  const x = !y;
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, containerHeight] = useOnResize(containerRef);
-  const containerSize = !y ? containerWidth : containerHeight;
+  const containerSize = x ? containerWidth : containerHeight;
   const [{ actors }, dispatch] = useReducer(reducer, initState);
   const [springs, set] = useSprings(actors.length, (i) => actors[i].anim);
   const childrenArr = Children.toArray(children);
@@ -149,7 +150,12 @@ const RCarousel: React.FC<RCarouselProps> = ({
   return (
     <div
       ref={containerRef}
-      className={classNames([styles.container, className])}
+      className={classNames([
+        styles.container,
+        styles.w100,
+        styles.h100,
+        className,
+      ])}
       {...(gestures ? bind() : {})}
       {...rest}
     >
@@ -159,25 +165,30 @@ const RCarousel: React.FC<RCarouselProps> = ({
           childIndex < 0
             ? undefined
             : childrenArr[infinite ? childIndex % childrenCount : childIndex];
-        const translateXY = (d: number) => `${d * 100}%, ${-50}%`;
-        const translateYX = (d: number) => `${-50}%, ${d * 100}%`;
 
         return (
           <animated.div
             key={index}
-            className={styles.actor}
+            className={classNames([
+              styles.actor,
+              x ? styles.h100 : styles.w100,
+            ])}
             style={{
-              [!y ? 'width' : 'height']: itemSizePercents * 100 + '%',
-              [!y ? 'top' : 'left']: '50%',
+              [x ? 'width' : 'height']: itemSizePercents * 100 + '%',
               transform: d.interpolate(
-                (d) => `translate3d(${!y ? translateXY(d) : translateYX(d)},0)`
+                (d) => `translate3d(${`${+x * d * 100}%, ${+y * d * 100}%`}, 0)`
               ),
             }}
           >
             {child && (
               <div
                 style={itemWrapperStyle}
-                className={classNames([styles.childWrapper, itemWrapperClass])}
+                className={classNames([
+                  styles.childWrapper,
+                  styles.w100,
+                  styles.h100,
+                  itemWrapperClass,
+                ])}
               >
                 {child}
               </div>
