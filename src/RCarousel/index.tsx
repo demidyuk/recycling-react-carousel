@@ -5,6 +5,7 @@ import React, {
   useCallback,
   useReducer,
   Children,
+  useMemo,
 } from 'react';
 import { useOnResize } from '../hooks/useOnResize';
 import { clampCursor } from './helpers/clampCursor';
@@ -14,6 +15,7 @@ import { useDrag } from 'react-use-gesture';
 import styles from './RCarousel.module.css';
 import { classNames } from './helpers/classNames';
 import invariant from 'tiny-invariant';
+import { ActorsCountConfig } from './helpers/types';
 
 export interface RCarouselProps extends React.HTMLAttributes<HTMLDivElement> {
   cursor: number;
@@ -26,6 +28,8 @@ export interface RCarouselProps extends React.HTMLAttributes<HTMLDivElement> {
   infinite?: boolean;
   alignCenter?: boolean;
   fitContent?: boolean;
+  centerMode: boolean;
+  centerPadding?: number;
   onNextSwipe?: () => void;
   onPrevSwipe?: () => void;
   onCursorChange?: (cursor: number) => void;
@@ -46,6 +50,8 @@ const RCarousel: React.FC<RCarouselProps> = ({
   infinite = false,
   alignCenter = true,
   fitContent = false,
+  centerMode = false,
+  centerPadding = 0.3,
   onNextSwipe = () => void 0,
   onPrevSwipe = () => void 0,
   onCursorChange = () => void 0,
@@ -72,14 +78,39 @@ const RCarousel: React.FC<RCarouselProps> = ({
     `displayAtOnce must be positive or zero`
   );
 
-  const visibleItemsCount =
+  const visibleItemsCountDesired =
     displayAtOnce ??
     Math.ceil(itemSizePxOriginal ? containerSize / itemSizePxOriginal : 0);
 
-  const itemSizePx = visibleItemsCount ? containerSize / visibleItemsCount : 0;
-  const itemSizePercents = visibleItemsCount ? 1 / visibleItemsCount : 0;
+  centerMode &&
+    invariant(centerPadding >= 0, `centerPadding must be positive or zero`);
 
-  infinite = infinite && childrenCount >= visibleItemsCount;
+  const actorsCountConfig = useMemo<ActorsCountConfig>(
+    () => ({
+      visible:
+        visibleItemsCountDesired +
+        (centerMode ? 2 * Math.ceil(centerPadding) : 0),
+      invisible: visibleItemsCountDesired,
+      desired: visibleItemsCountDesired,
+      get total() {
+        return this.visible + this.invisible * 2;
+      },
+    }),
+    [visibleItemsCountDesired, centerMode, centerPadding]
+  );
+
+  centerPadding *= +centerMode;
+
+  const itemSizePercents = visibleItemsCountDesired
+    ? 1 / (2 * centerPadding + visibleItemsCountDesired)
+    : 0;
+
+  const itemSizePx = visibleItemsCountDesired
+    ? containerSize * itemSizePercents
+    : 0;
+
+  infinite = infinite && childrenCount >= visibleItemsCountDesired;
+  centerPadding *= 100;
 
   let alignWrapperClass: string;
 
@@ -116,12 +147,12 @@ const RCarousel: React.FC<RCarouselProps> = ({
   useEffect(() => {
     dispatch({
       type: 'UPDATE',
-      payload: { cursor: clamp(cursor), visibleItemsCount },
+      payload: { cursor: clamp(cursor), actorsCountConfig },
     });
-  }, [visibleItemsCount, cursor, clamp]);
+  }, [actorsCountConfig, cursor, clamp]);
 
-  useEffect(() => onVisibleActorsChange(visibleItemsCount), [
-    visibleItemsCount,
+  useEffect(() => onVisibleActorsChange(visibleItemsCountDesired), [
+    visibleItemsCountDesired,
     onVisibleActorsChange,
   ]);
 
@@ -133,12 +164,11 @@ const RCarousel: React.FC<RCarouselProps> = ({
   const bind = useDrag(
     ({ down, movement, cancel, canceled }) => {
       if (canceled) return;
-      const visibleItemsCount = actors.length / 3;
       const axis = +y;
 
       if (
         (!down && Math.abs(movement[axis]) > itemSizePx * 0.5) ||
-        Math.abs(movement[axis]) / itemSizePx >= visibleItemsCount
+        Math.abs(movement[axis]) / itemSizePx >= visibleItemsCountDesired
       ) {
         cancel();
         if (onMoveRequested(-Math.round(movement[axis] / itemSizePx)) === 0) {
@@ -186,7 +216,10 @@ const RCarousel: React.FC<RCarouselProps> = ({
             style={{
               [x ? 'width' : 'height']: itemSizePercents * 100 + '%',
               transform: d.interpolate(
-                (d) => `translate3d(${`${+x * d * 100}%, ${+y * d * 100}%`}, 0)`
+                (d) =>
+                  `translate3d(${`${+x * (d * 100 + centerPadding)}%, ${
+                    +y * (d * 100 + centerPadding)
+                  }%`}, 0)`
               ),
             }}
           >

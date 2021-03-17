@@ -1,23 +1,24 @@
+import { ActorsCountConfig } from './types';
+
 export function getSnapshot(
   cursor: number,
   delta: number,
-  totalItemsCount: number
+  { total, visible, invisible }: ActorsCountConfig
 ) {
   const snapshot = [];
   const deltaSign = Math.sign(delta);
-  const visibleItemsCount = totalItemsCount / 3;
-  const offset =
-    deltaSign > 0
-      ? totalItemsCount - visibleItemsCount
-      : -visibleItemsCount - 1;
-  const startPoint = deltaSign > 0 ? 0 : totalItemsCount - 1;
+  const offset = deltaSign > 0 ? total - invisible : -invisible - 1;
+  const startPoint = deltaSign > 0 ? 0 : total - 1;
 
-  for (let i = 0; i < totalItemsCount; i++) {
-    snapshot.push(cursor - visibleItemsCount + i);
+  for (let i = 0; i < total; i++) {
+    snapshot.push(
+      cursor - invisible + i - Math.ceil((visible - invisible) / 2)
+    );
   }
 
   for (let i = 0; i < Math.abs(delta); i++) {
-    snapshot[startPoint + i * deltaSign] = cursor + offset + i * deltaSign;
+    snapshot[startPoint + i * deltaSign] =
+      cursor + offset + i * deltaSign - Math.ceil((visible - invisible) / 2);
   }
 
   return snapshot;

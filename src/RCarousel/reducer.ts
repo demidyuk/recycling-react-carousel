@@ -2,19 +2,19 @@ import clamp from 'lodash.clamp';
 import { animTo } from './helpers/animTo';
 import { getSnapshot } from './helpers/getSnapshot';
 
-type Actor = {
+interface Actor {
   childIndex: number;
   anim: {
     d: number;
     immediate: boolean;
   };
-};
+}
 
-type State = {
+interface State {
   actors: Actor[];
   actorsState: number;
   curCursor?: number;
-};
+}
 
 export const initState: State = {
   actors: [],
@@ -25,30 +25,29 @@ export const initState: State = {
 export function reducer(state: State, { type, payload }: any) {
   switch (type) {
     case 'UPDATE': {
-      const { visibleItemsCount, cursor: newCursor } = payload;
+      const { cursor: newCursor, actorsCountConfig } = payload;
       const { curCursor: cursor = 0 } = state;
-      const totalItemsCount = visibleItemsCount * 3;
+      const { desired, total } = actorsCountConfig;
       const delta = newCursor - cursor;
       const deltaSign = Math.sign(delta);
-      const relocated = Math.abs(delta) > visibleItemsCount;
-      const clampedDelta = clamp(delta, -visibleItemsCount, visibleItemsCount);
+      const relocated = Math.abs(delta) > desired; // TODO: check relocated state in center mode
+      const clampedDelta = clamp(delta, -desired, desired);
 
       const actors = getSnapshot(
-        relocated ? newCursor - visibleItemsCount * deltaSign : cursor,
+        relocated ? newCursor - desired * deltaSign : cursor,
         clampedDelta,
-        totalItemsCount
+        actorsCountConfig
       );
 
-      const newActorsState = totalItemsCount
-        ? (totalItemsCount + (state.actorsState + clampedDelta)) %
-          totalItemsCount
+      const newActorsState = total
+        ? (total + (state.actorsState + clampedDelta)) % total
         : state.actorsState;
 
-      const curRoles = Array(totalItemsCount)
+      const curRoles = Array(total)
         .fill(undefined)
         .map((_, i, arr) => (i + state.actorsState) % arr.length);
 
-      const nextRoles = Array(totalItemsCount)
+      const nextRoles = Array(total)
         .fill(undefined)
         .map((_, i, arr) => (i + newActorsState) % arr.length);
 
@@ -60,7 +59,7 @@ export function reducer(state: State, { type, payload }: any) {
         delta: clampedDelta,
         curRoles,
         nextRoles,
-        totalItemsCount,
+        actorsCountConfig,
         relocated,
       });
 
