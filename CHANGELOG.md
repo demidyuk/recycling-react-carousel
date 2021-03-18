@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/demidyuk/recycling-react-carousel/compare/v1.0.1...v1.0.2) (2021-03-18)
+
+
+### Bug Fixes
+
+* fix bug with init prop of useCursor ([6fa2782](https://github.com/demidyuk/recycling-react-carousel/commit/6fa2782f0ef28cfdbcf7da6cc81b67db67ffeaab))
+
 ## [1.0.1](https://github.com/demidyuk/recycling-react-carousel/compare/v1.0.0...v1.0.1) (2021-03-14)
 
 
