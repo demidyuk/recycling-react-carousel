@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/demidyuk/recycling-react-carousel/compare/v1.0.0...v1.0.1) (2021-03-14)
+
+
+### Bug Fixes
+
+* make item wrapper width 100% on the y-axis ([82ae8b9](https://github.com/demidyuk/recycling-react-carousel/commit/82ae8b915609aef1c912e374d9a3befa37c1e18a))
+
 # 1.0.0 (2021-03-13)
 
 
