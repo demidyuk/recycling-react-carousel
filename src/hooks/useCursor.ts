@@ -8,7 +8,7 @@ interface CursorProps {
 
 export function useCursor({ init = 0, step = 1 }: CursorProps = {}) {
   const [[firstIndex, lastIndex], setRange] = useState([0, 0]);
-  const [cursor, set] = useState(clampCursor(init, lastIndex));
+  const [cursor, set] = useState(init);
   const clampAndSet = useCallback(
     (value: number | ((arg: number) => number)) => {
       set((prev: number) => {
