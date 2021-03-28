@@ -7,7 +7,7 @@ interface CursorProps {
 }
 
 export function useCursor({ init = 0, step = 1 }: CursorProps = {}) {
-  const [[from, to, slidesCount], setRange] = useState([0, 0, 0]);
+  const [[from, to, slidesCount], setRange] = useState<number[]>([0, 0, 0]);
   const [globalCursor, set] = useState(init);
   const getLocalCursor = (globalCursor: number, slidesCount: number) =>
     getLocalIndex(globalCursor, slidesCount);
@@ -40,7 +40,7 @@ export function useCursor({ init = 0, step = 1 }: CursorProps = {}) {
   );
 
   const onRangeChange = useCallback(
-    (...range: [number, number, number]) => setRange(range),
+    (...range: number[]) => setRange(range),
     []
   );
 
