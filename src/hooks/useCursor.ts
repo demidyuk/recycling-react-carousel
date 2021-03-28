@@ -14,11 +14,12 @@ export function useCursor({ init = 0, step = 1 }: CursorProps = {}) {
       set((prev: number) => {
         return clampCursor(
           typeof value === 'function' ? value(prev) : value,
+          firstIndex,
           lastIndex
         );
       });
     },
-    [lastIndex, set]
+    [firstIndex, lastIndex]
   );
 
   const move = useCallback(
