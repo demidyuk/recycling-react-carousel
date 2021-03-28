@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { clampCursor } from '../RCarousel/helpers/clampCursor';
+import { clampCursor, getLocalIndex } from '../RCarousel/helpers';
 
 interface CursorProps {
   init?: number;
@@ -7,58 +7,64 @@ interface CursorProps {
 }
 
 export function useCursor({ init = 0, step = 1 }: CursorProps = {}) {
-  const [[firstIndex, lastIndex], setRange] = useState([0, 0]);
-  const [cursor, set] = useState(init);
+  const [[from, to, slidesCount], setRange] = useState([0, 0, 0]);
+  const [globalCursor, set] = useState(init);
+  const getLocalCursor = (globalCursor: number, slidesCount: number) =>
+    getLocalIndex(globalCursor, slidesCount);
+  const localCursor = getLocalCursor(globalCursor, slidesCount);
+
   const clampAndSet = useCallback(
     (value: number | ((arg: number) => number)) => {
-      set((prev: number) => {
-        return clampCursor(
-          typeof value === 'function' ? value(prev) : value,
-          firstIndex,
-          lastIndex
-        );
-      });
+      set((prev: number) =>
+        clampCursor(typeof value === 'function' ? value(prev) : value, from, to)
+      );
     },
-    [firstIndex, lastIndex]
+    [from, to]
+  );
+
+  const goTo = useCallback(
+    (value: number) =>
+      set(
+        (prevGlobalCursor: number) =>
+          clampCursor(value, 0, slidesCount - 1) -
+          getLocalCursor(prevGlobalCursor, slidesCount) +
+          prevGlobalCursor
+      ),
+    [slidesCount]
   );
 
   const move = useCallback(
-    (step: number) => () => clampAndSet((cur: number) => cur + step),
+    (step: number) => () =>
+      clampAndSet((globalCursor: number) => globalCursor + step),
     [clampAndSet]
   );
 
   const onRangeChange = useCallback(
-    (min, max) => {
-      setRange([min, max]);
-      set((cursor: number) => {
-        if (max < cursor) {
-          return max;
-        }
-        return cursor;
-      });
-    },
-    [setRange, set]
+    (...range: [number, number, number]) => setRange(range),
+    []
   );
 
   const next = useMemo(() => move(1 * step), [move, step]);
   const back = useMemo(() => move(-1 * step), [move, step]);
 
-  const isMax = !(cursor + step <= lastIndex);
-  const isMin = !(cursor - step >= firstIndex);
+  const isMax = !(globalCursor + step <= to);
+  const isMin = !(globalCursor - step >= from);
 
   return {
-    cursor,
+    cursor: localCursor,
     clampAndSet,
+    goTo,
     move,
     next,
     back,
-    firstIndex,
-    lastIndex,
+    firstIndex: from,
+    lastIndex: to,
+    length: slidesCount,
     isMax,
     isMin,
     props: {
-      cursor,
-      onCursorChange: clampAndSet,
+      cursor: globalCursor,
+      onCursorChange: set,
       onRangeChange,
     },
     nextBtnProps: { onClick: next, disabled: isMax },
