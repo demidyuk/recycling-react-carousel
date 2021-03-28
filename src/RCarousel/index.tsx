@@ -27,7 +27,7 @@ export interface RCarouselProps extends React.HTMLAttributes<HTMLDivElement> {
   onNextSwipe?: () => void;
   onPrevSwipe?: () => void;
   onCursorChange?: (cursor: number) => void;
-  onRangeChange?: (from: number, to: number) => void;
+  onRangeChange?: (from: number, to: number, slidesCount: number) => void;
   onVisibleActorsChange?: (actorsCount: number) => void;
 }
 
@@ -134,7 +134,7 @@ const RCarousel: React.FC<RCarouselProps> = ({
 
   useEffect(() => {
     if (needRangeUpdate) {
-      onRangeChange(min, max);
+      onRangeChange(min, max, childrenCount);
       if (!inRange(cursor, min, max && max + 1)) {
         const nextCursor = getLocalIndex(cursor, childrenCount);
         onCursorChange(nextCursor);
