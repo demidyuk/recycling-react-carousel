@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`check defaultCursor prop on uncontrolled behavior 1`] = `
+exports[`check defaultCursor prop 1`] = `
 <DocumentFragment>
   <div
     class="container w100 h100"
