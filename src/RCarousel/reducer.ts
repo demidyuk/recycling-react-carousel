@@ -1,10 +1,8 @@
 import clamp from 'lodash.clamp';
-import { getLocalIndex } from './helpers';
 import { animTo } from './helpers/animTo';
 import { getSnapshot } from './helpers/getSnapshot';
 
 type Actor = {
-  childIndex: number;
   globalChildIndex: number;
   anim: {
     d: number;
@@ -27,12 +25,7 @@ export const initState: State = {
 export function reducer(state: State, { type, payload }: any): State {
   switch (type) {
     case 'UPDATE': {
-      const {
-        visibleItemsCount,
-        cursor: newCursor,
-        childrenCount,
-        immediate,
-      } = payload;
+      const { visibleItemsCount, cursor: newCursor, immediate } = payload;
       const { curCursor: cursor = 0 } = state;
       const totalItemsCount = visibleItemsCount * 3;
       const delta = immediate ? 0 : newCursor - cursor;
@@ -73,7 +66,6 @@ export function reducer(state: State, { type, payload }: any): State {
 
       return {
         actors: actors.map((childIndex, i) => ({
-          childIndex: getLocalIndex(childIndex, childrenCount),
           globalChildIndex: childIndex,
           anim: to(i),
         })),

@@ -1,20 +1,22 @@
 import React from 'react';
-import RCarousel from '../..';
+import RCarousel, { RCarouselProps } from '../..';
 
 export function buildTestCarousel({
   baseProps: {
-    cursor = 0,
+    cursor,
+    defaultCursor = 0,
     maxItemSize = Number.MAX_VALUE,
     gestures = true,
     y = false,
     infinite = false,
     ...restProps
-  } = {} as any,
+  } = {} as RCarouselProps,
   slidesCount = 3,
+  prefix = 'slide',
 } = {}) {
   const items = Array(slidesCount)
     .fill(undefined)
-    .map((_, i) => `slide ${i + 1}`);
+    .map((_, i) => `${prefix}${i + 1}`);
   return {
     Component(props: any = {}) {
       return (
@@ -38,5 +40,7 @@ export function buildTestCarousel({
       );
     },
     items,
+    prefix,
+    matchPattern: new RegExp(prefix),
   };
 }

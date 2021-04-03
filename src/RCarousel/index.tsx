@@ -16,7 +16,8 @@ import invariant from 'tiny-invariant';
 import inRange from 'lodash.inrange';
 
 export interface RCarouselProps extends React.HTMLAttributes<HTMLDivElement> {
-  cursor: number;
+  cursor?: number;
+  defaultCursor?: number;
   maxItemSize?: number;
   displayAtOnce?: number;
   itemWrapperStyle?: React.CSSProperties;
@@ -33,7 +34,8 @@ export interface RCarouselProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const RCarousel: React.FC<RCarouselProps> = ({
   children,
-  cursor = 0,
+  cursor,
+  defaultCursor = 0,
   maxItemSize = Number.MAX_VALUE,
   displayAtOnce,
   itemWrapperStyle = {},
@@ -42,27 +44,29 @@ const RCarousel: React.FC<RCarouselProps> = ({
   gestures = true,
   y = false,
   infinite = false,
-  onNextSwipe = () => void 0,
-  onPrevSwipe = () => void 0,
-  onCursorChange = () => void 0,
-  onRangeChange = () => void 0,
-  onVisibleActorsChange = () => void 0,
+  onNextSwipe = () => {},
+  onPrevSwipe = () => {},
+  onCursorChange = () => {},
+  onRangeChange = () => {},
+  onVisibleActorsChange = () => {},
   ...rest
 }) => {
   const x = !y;
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, containerHeight] = useOnResize(containerRef);
   const containerSize = x ? containerWidth : containerHeight;
-  const [{ actors }, dispatch] = useReducer(reducer, initState);
+  const [{ actors, curCursor }, dispatch] = useReducer(reducer, initState);
   const [springs, set] = useSprings(actors.length, (i) => actors[i].anim);
   const childrenArr = Children.toArray(children);
   const childrenCount = Children.count(children);
   const prevChildrenCount = usePrevious<number>(childrenCount);
 
+  const lastCursor: number = cursor ?? curCursor ?? defaultCursor;
+
   invariant(
-    Number.isSafeInteger(cursor + childrenCount) &&
-      Number.isSafeInteger(cursor - childrenCount),
-    `cursor is not valid, got ${cursor}`
+    Number.isSafeInteger(lastCursor + childrenCount) &&
+      Number.isSafeInteger(lastCursor - childrenCount),
+    `cursor is not valid, got ${lastCursor}`
   );
   invariant(maxItemSize >= 0, `maxItemSize must be positive or zero`);
 
@@ -88,7 +92,8 @@ const RCarousel: React.FC<RCarouselProps> = ({
     infinite ? Infinity : childrenCount && childrenCount - 1,
   ];
 
-  const needViewUpdate = useNeedUpdate(visibleItemsCount, cursor);
+  const needViewUpdate =
+    useNeedUpdate(visibleItemsCount, lastCursor) && visibleItemsCount > 0;
   const needRangeUpdate = useNeedUpdate(min, max, childrenCount);
   const needVICUpdate = useNeedUpdate(visibleItemsCount);
 
@@ -100,50 +105,49 @@ const RCarousel: React.FC<RCarouselProps> = ({
   );
 
   const update = useCallback(
-    ({ immediate = false, cursor: nextCursor = cursor } = {}) => {
+    ({ immediate = false, cursor: nextCursor = lastCursor } = {}) => {
       dispatch({
         type: 'UPDATE',
         payload: {
           cursor: clamp(nextCursor),
           visibleItemsCount,
-          childrenCount,
           immediate,
         },
       });
     },
-    [childrenCount, clamp, cursor, visibleItemsCount]
+    [clamp, lastCursor, visibleItemsCount]
   );
 
   const onMoveRequested = useCallback(
     (step: number) => {
-      const newCursor = clamp(cursor + step);
-      const d = newCursor - cursor;
+      const nextCursor = clamp(lastCursor + step);
+      const d = nextCursor - lastCursor;
       if (step > 0) {
         onNextSwipe();
       } else if (step < 0) {
         onPrevSwipe();
       }
       if (d) {
-        onCursorChange(newCursor);
-        update({ cursor: newCursor });
+        onCursorChange(nextCursor);
+        update({ cursor: nextCursor });
       }
       return d;
     },
-    [clamp, cursor, onNextSwipe, onPrevSwipe, onCursorChange, update]
+    [clamp, lastCursor, onNextSwipe, onPrevSwipe, onCursorChange, update]
   );
 
   useEffect(() => {
     if (needRangeUpdate) {
       onRangeChange(min, max, childrenCount);
-      if (!inRange(cursor, min, max && max + 1)) {
-        const nextCursor = getLocalIndex(cursor, childrenCount);
+      if (!inRange(lastCursor, min, max && max + 1)) {
+        const nextCursor = getLocalIndex(lastCursor, childrenCount);
         onCursorChange(nextCursor);
         update({ immediate: true, cursor: nextCursor });
       }
     }
   }, [
     childrenCount,
-    cursor,
+    lastCursor,
     onRangeChange,
     onCursorChange,
     min,
@@ -161,10 +165,10 @@ const RCarousel: React.FC<RCarouselProps> = ({
       Math.abs(childrenCount - prevChildrenCount) >= 1
     ) {
       const shift =
-        Math.floor(cursor / prevChildrenCount) *
+        Math.floor(lastCursor / prevChildrenCount) *
         (childrenCount - prevChildrenCount);
       if (Math.abs(shift) > 0) {
-        const nextCursor = cursor + shift;
+        const nextCursor = lastCursor + shift;
         update({ immediate: true, cursor: nextCursor });
         onCursorChange(nextCursor);
       } else {
@@ -173,13 +177,14 @@ const RCarousel: React.FC<RCarouselProps> = ({
     }
   }, [
     visibleItemsCount,
-    cursor,
+    lastCursor,
     clamp,
     needViewUpdate,
     childrenCount,
     prevChildrenCount,
     onCursorChange,
     update,
+    containerSize,
   ]);
 
   useEffect(
@@ -232,9 +237,14 @@ const RCarousel: React.FC<RCarouselProps> = ({
       {...rest}
     >
       {springs.map(({ d }, index) => {
-        const { childIndex, globalChildIndex } = actors[index];
+        const { globalChildIndex } = actors[index];
         const child = inRange(globalChildIndex, min, max && max + 1)
-          ? childrenArr[childIndex]
+          ? childrenArr[
+              getLocalIndex(
+                globalChildIndex,
+                prevChildrenCount ?? childrenCount
+              )
+            ]
           : undefined;
 
         return (

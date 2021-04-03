@@ -1,0 +1,330 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`check defaultCursor prop on uncontrolled behavior 1`] = `
+<DocumentFragment>
+  <div
+    class="container w100 h100"
+  >
+    <div
+      class="actor h100"
+      style="width: 100%; transform: translate3d(100%, 0%, 0);"
+    />
+    <div
+      class="actor h100"
+      style="width: 100%; transform: translate3d(-100%, 0%, 0);"
+    >
+      <div
+        class="childWrapper w100 h100"
+      >
+        <div
+          data-testid="slide2"
+        >
+          slide2
+        </div>
+      </div>
+    </div>
+    <div
+      class="actor h100"
+      style="width: 100%; transform: translate3d(0%, 0%, 0);"
+    >
+      <div
+        class="childWrapper w100 h100"
+      >
+        <div
+          data-testid="slide3"
+        >
+          slide3
+        </div>
+      </div>
+    </div>
+  </div>
+</DocumentFragment>
+`;
+
+exports[`check infinite switching 1`] = `
+Snapshot Diff:
+- First value
++ Second value
+
+@@ -2,11 +2,11 @@
+    <div
+      class="container w100 h100"
+    >
+      <div
+        class="actor h100"
+-       style="width: 100%; transform: translate3d(100%, 0%, 0);"
++       style="width: 100%; transform: translate3d(0%, 0%, 0);"
+      >
+        <div
+          class="childWrapper w100 h100"
+        >
+          <div
+@@ -16,11 +16,11 @@
+          </div>
+        </div>
+      </div>
+      <div
+        class="actor h100"
+-       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
++       style="width: 100%; transform: translate3d(100%, 0%, 0);"
+      >
+        <div
+          class="childWrapper w100 h100"
+        >
+          <div
+@@ -30,11 +30,11 @@
+          </div>
+        </div>
+      </div>
+      <div
+        class="actor h100"
+-       style="width: 100%; transform: translate3d(0%, 0%, 0);"
++       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
+      >
+        <div
+          class="childWrapper w100 h100"
+        >
+          <div
+`;
+
+exports[`check infinite switching 2`] = `
+Snapshot Diff:
+- First value
++ Second value
+
+@@ -2,11 +2,11 @@
+    <div
+      class="container w100 h100"
+    >
+      <div
+        class="actor h100"
+-       style="width: 100%; transform: translate3d(0%, 0%, 0);"
++       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
+      >
+        <div
+          class="childWrapper w100 h100"
+        >
+          <div
+@@ -16,11 +16,11 @@
+          </div>
+        </div>
+      </div>
+      <div
+        class="actor h100"
+-       style="width: 100%; transform: translate3d(100%, 0%, 0);"
++       style="width: 100%; transform: translate3d(0%, 0%, 0);"
+      >
+        <div
+          class="childWrapper w100 h100"
+        >
+          <div
+@@ -30,11 +30,11 @@
+          </div>
+        </div>
+      </div>
+      <div
+        class="actor h100"
+-       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
++       style="width: 100%; transform: translate3d(100%, 0%, 0);"
+      >
+        <div
+          class="childWrapper w100 h100"
+        >
+          <div
+`;
+
+exports[`check slides switching using cursor prop 1`] = `
+Snapshot Diff:
+- First value
++ Second value
+
+@@ -2,15 +2,25 @@
+    <div
+      class="container w100 h100"
+    >
+      <div
+        class="actor h100"
+-       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
+-     />
++       style="width: 100%; transform: translate3d(100%, 0%, 0);"
++     >
++       <div
++         class="childWrapper w100 h100"
++       >
++         <div
++           data-testid="slide3"
++         >
++           slide3
++         </div>
++       </div>
++     </div>
+      <div
+        class="actor h100"
+-       style="width: 100%; transform: translate3d(0%, 0%, 0);"
++       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
+      >
+        <div
+          class="childWrapper w100 h100"
+        >
+          <div
+@@ -20,11 +30,11 @@
+          </div>
+        </div>
+      </div>
+      <div
+        class="actor h100"
+-       style="width: 100%; transform: translate3d(100%, 0%, 0);"
++       style="width: 100%; transform: translate3d(0%, 0%, 0);"
+      >
+        <div
+          class="childWrapper w100 h100"
+        >
+          <div
+`;
+
+exports[`check slides switching using cursor prop 2`] = `
+Snapshot Diff:
+- First value
++ Second value
+
+@@ -2,11 +2,11 @@
+    <div
+      class="container w100 h100"
+    >
+      <div
+        class="actor h100"
+-       style="width: 100%; transform: translate3d(100%, 0%, 0);"
++       style="width: 100%; transform: translate3d(0%, 0%, 0);"
+      >
+        <div
+          class="childWrapper w100 h100"
+        >
+          <div
+@@ -16,25 +16,15 @@
+          </div>
+        </div>
+      </div>
+      <div
+        class="actor h100"
+-       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
+-     >
+-       <div
+-         class="childWrapper w100 h100"
+-       >
+-         <div
+-           data-testid="slide1"
+-         >
+-           slide1
+-         </div>
+-       </div>
+-     </div>
++       style="width: 100%; transform: translate3d(100%, 0%, 0);"
++     />
+      <div
+        class="actor h100"
+-       style="width: 100%; transform: translate3d(0%, 0%, 0);"
++       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
+      >
+        <div
+          class="childWrapper w100 h100"
+        >
+          <div
+`;
+
+exports[`check slides switching using cursor prop 3`] = `
+Snapshot Diff:
+- First value
++ Second value
+
+@@ -2,11 +2,11 @@
+    <div
+      class="container w100 h100"
+    >
+      <div
+        class="actor h100"
+-       style="width: 100%; transform: translate3d(0%, 0%, 0);"
++       style="width: 100%; transform: translate3d(100%, 0%, 0);"
+      >
+        <div
+          class="childWrapper w100 h100"
+        >
+          <div
+@@ -16,15 +16,25 @@
+          </div>
+        </div>
+      </div>
+      <div
+        class="actor h100"
+-       style="width: 100%; transform: translate3d(100%, 0%, 0);"
+-     />
++       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
++     >
++       <div
++         class="childWrapper w100 h100"
++       >
++         <div
++           data-testid="slide1"
++         >
++           slide1
++         </div>
++       </div>
++     </div>
+      <div
+        class="actor h100"
+-       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
++       style="width: 100%; transform: translate3d(0%, 0%, 0);"
+      >
+        <div
+          class="childWrapper w100 h100"
+        >
+          <div
+`;
+
+exports[`check slides switching using cursor prop 4`] = `
+Snapshot Diff:
+- First value
++ Second value
+
+@@ -2,25 +2,15 @@
+    <div
+      class="container w100 h100"
+    >
+      <div
+        class="actor h100"
+-       style="width: 100%; transform: translate3d(100%, 0%, 0);"
+-     >
+-       <div
+-         class="childWrapper w100 h100"
+-       >
+-         <div
+-           data-testid="slide3"
+-         >
+-           slide3
+-         </div>
+-       </div>
+-     </div>
++       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
++     />
+      <div
+        class="actor h100"
+-       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
++       style="width: 100%; transform: translate3d(0%, 0%, 0);"
+      >
+        <div
+          class="childWrapper w100 h100"
+        >
+          <div
+@@ -30,11 +20,11 @@
+          </div>
+        </div>
+      </div>
+      <div
+        class="actor h100"
+-       style="width: 100%; transform: translate3d(0%, 0%, 0);"
++       style="width: 100%; transform: translate3d(100%, 0%, 0);"
+      >
+        <div
+          class="childWrapper w100 h100"
+        >
+          <div
+`;
