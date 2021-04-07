@@ -20,6 +20,7 @@ export function buildTestCarousel({
     gestures = true,
     y = false,
     infinite = false,
+    loop = false,
     ...restProps
   } = {} as RCarouselProps,
   slidesCount = 3,
@@ -36,6 +37,7 @@ export function buildTestCarousel({
             gestures,
             y,
             infinite,
+            loop,
             ...restProps,
           }}
           {...props}

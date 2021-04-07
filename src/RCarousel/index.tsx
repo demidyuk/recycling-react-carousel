@@ -25,6 +25,7 @@ export interface RCarouselProps extends React.HTMLAttributes<HTMLDivElement> {
   gestures?: boolean;
   y?: boolean;
   infinite?: boolean;
+  loop?: boolean;
   onNextSwipe?: () => void;
   onPrevSwipe?: () => void;
   onCursorChange?: (cursor: number) => void;
@@ -44,6 +45,7 @@ const RCarousel: React.FC<RCarouselProps> = ({
   gestures = true,
   y = false,
   infinite = false,
+  loop = false,
   onNextSwipe = () => {},
   onPrevSwipe = () => {},
   onCursorChange = () => {},
@@ -83,11 +85,11 @@ const RCarousel: React.FC<RCarouselProps> = ({
   const itemSizePx = visibleItemsCount ? containerSize / visibleItemsCount : 0;
   const itemSizePercents = visibleItemsCount ? 1 / visibleItemsCount : 0;
 
-  infinite = infinite && childrenCount >= visibleItemsCount;
+  const isEndless = (infinite || loop) && childrenCount >= visibleItemsCount;
 
   const [min, max] = [
-    0,
-    infinite ? Infinity : childrenCount && childrenCount - 1,
+    isEndless && loop ? -Infinity : 0,
+    isEndless ? Infinity : childrenCount && childrenCount - 1,
   ];
   const [, prevMax] = usePrevious([min, max]) ?? [min, max];
 
