@@ -1,6 +1,17 @@
 import React from 'react';
 import RCarousel, { RCarouselProps } from '../..';
 
+export function getTestSlides(count: number) {
+  const items = Array(count)
+    .fill(undefined)
+    .map((_, i) => `slide${i + 1}`);
+  return items.map((item) => (
+    <div key={item} data-testid={item}>
+      {item}
+    </div>
+  ));
+}
+
 export function buildTestCarousel({
   baseProps: {
     cursor,
@@ -12,17 +23,15 @@ export function buildTestCarousel({
     ...restProps
   } = {} as RCarouselProps,
   slidesCount = 3,
-  prefix = 'slide',
 } = {}) {
-  const items = Array(slidesCount)
-    .fill(undefined)
-    .map((_, i) => `${prefix}${i + 1}`);
+  const slides = getTestSlides(slidesCount);
   return {
-    Component(props: any = {}) {
+    Component({ children, ...props }: any = {}) {
       return (
         <RCarousel
           {...{
             cursor,
+            defaultCursor,
             maxItemSize,
             gestures,
             y,
@@ -31,16 +40,9 @@ export function buildTestCarousel({
           }}
           {...props}
         >
-          {items.map((item) => (
-            <div key={item} data-testid={item}>
-              {item}
-            </div>
-          ))}
+          {children || slides}
         </RCarousel>
       );
     },
-    items,
-    prefix,
-    matchPattern: new RegExp(prefix),
   };
 }

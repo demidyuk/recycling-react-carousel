@@ -7,8 +7,8 @@ const mockRaf = createMockRaf();
 Globals.injectFrame(mockRaf.raf, mockRaf.cancel);
 Globals.injectNow(mockRaf.now);
 
-export const finishAnim = (fn: any) => {
+export function finishAnim<T>(fn: () => T): T {
   const result = fn();
   mockRaf.flush();
   return result;
-};
+}

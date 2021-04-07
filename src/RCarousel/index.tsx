@@ -28,13 +28,13 @@ export interface RCarouselProps extends React.HTMLAttributes<HTMLDivElement> {
   onNextSwipe?: () => void;
   onPrevSwipe?: () => void;
   onCursorChange?: (cursor: number) => void;
-  onRangeChange?: (from: number, to: number, slidesCount: number) => void;
+  onRangeChange?: (...args: number[]) => void;
   onVisibleActorsChange?: (actorsCount: number) => void;
 }
 
 const RCarousel: React.FC<RCarouselProps> = ({
   children,
-  cursor,
+  cursor: cursorProp,
   defaultCursor = 0,
   maxItemSize = Number.MAX_VALUE,
   displayAtOnce,
@@ -59,24 +59,22 @@ const RCarousel: React.FC<RCarouselProps> = ({
   const [springs, set] = useSprings(actors.length, (i) => actors[i].anim);
   const childrenArr = Children.toArray(children);
   const childrenCount = Children.count(children);
-  const prevChildrenCount = usePrevious<number>(childrenCount);
-
-  const lastCursor: number = cursor ?? curCursor ?? defaultCursor;
+  const prevChildrenCount = usePrevious<number>(childrenCount) ?? childrenCount;
+  const cursor: number = cursorProp ?? curCursor ?? defaultCursor;
 
   invariant(
-    Number.isSafeInteger(lastCursor + childrenCount) &&
-      Number.isSafeInteger(lastCursor - childrenCount),
-    `cursor is not valid, got ${lastCursor}`
+    Number.isSafeInteger(cursor + childrenCount) &&
+      Number.isSafeInteger(cursor - childrenCount),
+    `cursor is not valid, got ${cursor}`
   );
   invariant(maxItemSize >= 0, `maxItemSize must be positive or zero`);
-
-  const itemSizePxOriginal =
-    maxItemSize > containerSize ? containerSize : maxItemSize;
-
   invariant(
     (displayAtOnce ?? 0) >= 0,
     `displayAtOnce must be positive or zero`
   );
+
+  const itemSizePxOriginal =
+    maxItemSize > containerSize ? containerSize : maxItemSize;
 
   const visibleItemsCount =
     displayAtOnce ??
@@ -91,11 +89,12 @@ const RCarousel: React.FC<RCarouselProps> = ({
     0,
     infinite ? Infinity : childrenCount && childrenCount - 1,
   ];
+  const [, prevMax] = usePrevious([min, max]) ?? [min, max];
 
-  const needViewUpdate =
-    useNeedUpdate(visibleItemsCount, lastCursor) && visibleItemsCount > 0;
   const needRangeUpdate = useNeedUpdate(min, max, childrenCount);
   const needVICUpdate = useNeedUpdate(visibleItemsCount);
+  const needViewUpdate =
+    useNeedUpdate(cursor) || needRangeUpdate || needVICUpdate;
 
   const clamp = useCallback(
     (cursor) => {
@@ -105,23 +104,24 @@ const RCarousel: React.FC<RCarouselProps> = ({
   );
 
   const update = useCallback(
-    ({ immediate = false, cursor: nextCursor = lastCursor } = {}) => {
+    ({ cursor: nextCursor = cursor, ...rest } = {}) => {
       dispatch({
         type: 'UPDATE',
         payload: {
           cursor: clamp(nextCursor),
           visibleItemsCount,
-          immediate,
+          ...rest,
         },
       });
     },
-    [clamp, lastCursor, visibleItemsCount]
+    [clamp, cursor, visibleItemsCount]
   );
 
   const onMoveRequested = useCallback(
     (step: number) => {
-      const nextCursor = clamp(lastCursor + step);
-      const d = nextCursor - lastCursor;
+      const clampedCursor = clamp(cursor);
+      const nextCursor = clamp(clampedCursor + step);
+      const d = nextCursor - clampedCursor;
       if (step > 0) {
         onNextSwipe();
       } else if (step < 0) {
@@ -133,58 +133,36 @@ const RCarousel: React.FC<RCarouselProps> = ({
       }
       return d;
     },
-    [clamp, lastCursor, onNextSwipe, onPrevSwipe, onCursorChange, update]
+    [clamp, cursor, onNextSwipe, onPrevSwipe, onCursorChange, update]
+  );
+
+  useEffect(
+    () => void (needRangeUpdate && onRangeChange(min, max, childrenCount)),
+    [onRangeChange, min, max, childrenCount, needRangeUpdate]
   );
 
   useEffect(() => {
-    if (needRangeUpdate) {
-      onRangeChange(min, max, childrenCount);
-      if (!inRange(lastCursor, min, max && max + 1)) {
-        const nextCursor = getLocalIndex(lastCursor, childrenCount);
-        onCursorChange(nextCursor);
-        update({ immediate: true, cursor: nextCursor });
-      }
-    }
-  }, [
-    childrenCount,
-    lastCursor,
-    onRangeChange,
-    onCursorChange,
-    min,
-    max,
-    needRangeUpdate,
-    update,
-    infinite,
-  ]);
-
-  useEffect(() => {
     if (needViewUpdate) {
-      update();
-    } else if (
-      prevChildrenCount !== undefined &&
-      Math.abs(childrenCount - prevChildrenCount) >= 1
-    ) {
       const shift =
-        Math.floor(lastCursor / prevChildrenCount) *
+        Math.floor(clamp(curCursor ?? cursor) / prevChildrenCount) *
         (childrenCount - prevChildrenCount);
-      if (Math.abs(shift) > 0) {
-        const nextCursor = lastCursor + shift;
-        update({ immediate: true, cursor: nextCursor });
-        onCursorChange(nextCursor);
-      } else {
-        update({ immediate: true });
-      }
+
+      update({
+        shift,
+      });
+
+      shift && onCursorChange(cursor + shift);
     }
   }, [
-    visibleItemsCount,
-    lastCursor,
-    clamp,
-    needViewUpdate,
     childrenCount,
-    prevChildrenCount,
+    clamp,
+    curCursor,
+    cursor,
+    needRangeUpdate,
+    needViewUpdate,
     onCursorChange,
+    prevChildrenCount,
     update,
-    containerSize,
   ]);
 
   useEffect(
@@ -229,6 +207,7 @@ const RCarousel: React.FC<RCarouselProps> = ({
       ref={containerRef}
       className={classNames([
         styles.container,
+        gestures && styles.touchActionNone,
         styles.w100,
         styles.h100,
         className,
@@ -238,13 +217,8 @@ const RCarousel: React.FC<RCarouselProps> = ({
     >
       {springs.map(({ d }, index) => {
         const { globalChildIndex } = actors[index];
-        const child = inRange(globalChildIndex, min, max && max + 1)
-          ? childrenArr[
-              getLocalIndex(
-                globalChildIndex,
-                prevChildrenCount ?? childrenCount
-              )
-            ]
+        const child = inRange(globalChildIndex, min, prevMax && prevMax + 1)
+          ? childrenArr[getLocalIndex(globalChildIndex, prevChildrenCount)]
           : undefined;
 
         return (

@@ -35,8 +35,10 @@ export function useCursor({ init = 0, step = 1 }: CursorProps = {}) {
 
   const move = useCallback(
     (step: number) => () =>
-      clampAndSet((globalCursor: number) => globalCursor + step),
-    [clampAndSet]
+      clampAndSet(
+        (globalCursor: number) => clampCursor(globalCursor, from, to) + step
+      ),
+    [clampAndSet, from, to]
   );
 
   const onRangeChange = useCallback(
@@ -52,16 +54,17 @@ export function useCursor({ init = 0, step = 1 }: CursorProps = {}) {
 
   return {
     cursor: localCursor,
-    clampAndSet,
-    goTo,
-    move,
-    next,
-    back,
     firstIndex: from,
     lastIndex: to,
     length: slidesCount,
     isMax,
     isMin,
+    setCursor: set,
+    clampAndSet,
+    goTo,
+    move,
+    next,
+    back,
     props: {
       cursor: globalCursor,
       onCursorChange: set,

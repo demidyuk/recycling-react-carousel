@@ -25,16 +25,19 @@ export const initState: State = {
 export function reducer(state: State, { type, payload }: any): State {
   switch (type) {
     case 'UPDATE': {
-      const { visibleItemsCount, cursor: newCursor, immediate } = payload;
+      const { visibleItemsCount, cursor: newCursor, shift = 0 } = payload;
       const { curCursor: cursor = 0 } = state;
       const totalItemsCount = visibleItemsCount * 3;
-      const delta = immediate ? 0 : newCursor - cursor;
+      const delta = newCursor - cursor;
+      const immediate = delta === 0;
       const deltaSign = Math.sign(delta);
       const relocated = immediate || Math.abs(delta) > visibleItemsCount;
       const clampedDelta = clamp(delta, -visibleItemsCount, visibleItemsCount);
 
       const actors = getSnapshot(
-        relocated ? newCursor - visibleItemsCount * deltaSign : cursor,
+        relocated
+          ? newCursor + shift - visibleItemsCount * deltaSign
+          : cursor + shift,
         clampedDelta,
         totalItemsCount
       );
@@ -70,7 +73,7 @@ export function reducer(state: State, { type, payload }: any): State {
           anim: to(i),
         })),
         actorsState: newActorsState,
-        curCursor: newCursor,
+        curCursor: newCursor + shift,
       };
     }
     default:
