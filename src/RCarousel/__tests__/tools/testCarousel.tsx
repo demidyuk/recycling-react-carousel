@@ -13,35 +13,14 @@ export function getTestSlides(count: number) {
 }
 
 export function buildTestCarousel({
-  baseProps: {
-    cursor,
-    defaultCursor = 0,
-    maxItemSize = Number.MAX_VALUE,
-    gestures = true,
-    y = false,
-    infinite = false,
-    loop = false,
-    ...restProps
-  } = {} as RCarouselProps,
+  baseProps = {} as RCarouselProps,
   slidesCount = 3,
 } = {}) {
   const slides = getTestSlides(slidesCount);
   return {
     Component({ children, ...props }: any = {}) {
       return (
-        <RCarousel
-          {...{
-            cursor,
-            defaultCursor,
-            maxItemSize,
-            gestures,
-            y,
-            infinite,
-            loop,
-            ...restProps,
-          }}
-          {...props}
-        >
+        <RCarousel {...baseProps} {...props}>
           {children || slides}
         </RCarousel>
       );

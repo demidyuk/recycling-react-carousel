@@ -7,7 +7,13 @@ import React, {
   Children,
 } from 'react';
 import { useOnResize, usePrevious, useNeedUpdate } from '../hooks';
-import { clampCursor, classNames, getLocalIndex } from './helpers';
+import {
+  clampCursor,
+  classNames,
+  getLocalIndex,
+  UnitValue,
+  parsePx,
+} from './helpers';
 import { reducer, initState } from './reducer';
 import { animated, useSprings } from 'react-spring';
 import { useDrag } from 'react-use-gesture';
@@ -18,7 +24,7 @@ import inRange from 'lodash.inrange';
 export interface RCarouselProps extends React.HTMLAttributes<HTMLDivElement> {
   cursor?: number;
   defaultCursor?: number;
-  maxItemSize?: number;
+  maxItemSize?: UnitValue;
   displayAtOnce?: number;
   itemWrapperStyle?: React.CSSProperties;
   itemWrapperClass?: string;
@@ -26,6 +32,7 @@ export interface RCarouselProps extends React.HTMLAttributes<HTMLDivElement> {
   y?: boolean;
   infinite?: boolean;
   loop?: boolean;
+  swipeThreshold?: UnitValue;
   onNextSwipe?: () => void;
   onPrevSwipe?: () => void;
   onCursorChange?: (cursor: number) => void;
@@ -37,7 +44,7 @@ const RCarousel: React.FC<RCarouselProps> = ({
   children,
   cursor: cursorProp,
   defaultCursor = 0,
-  maxItemSize = Number.MAX_VALUE,
+  maxItemSize = '100%',
   displayAtOnce,
   itemWrapperStyle = {},
   itemWrapperClass,
@@ -46,6 +53,7 @@ const RCarousel: React.FC<RCarouselProps> = ({
   y = false,
   infinite = false,
   loop = false,
+  swipeThreshold = '50%',
   onNextSwipe = () => {},
   onPrevSwipe = () => {},
   onCursorChange = () => {},
@@ -63,6 +71,7 @@ const RCarousel: React.FC<RCarouselProps> = ({
   const childrenCount = Children.count(children);
   const prevChildrenCount = usePrevious<number>(childrenCount) ?? childrenCount;
   const cursor: number = cursorProp ?? curCursor ?? defaultCursor;
+  maxItemSize = parsePx(maxItemSize, containerSize);
 
   invariant(
     Number.isSafeInteger(cursor + childrenCount) &&
@@ -83,6 +92,11 @@ const RCarousel: React.FC<RCarouselProps> = ({
     Math.ceil(itemSizePxOriginal ? containerSize / itemSizePxOriginal : 0);
 
   const itemSizePx = visibleItemsCount ? containerSize / visibleItemsCount : 0;
+  swipeThreshold = parsePx(swipeThreshold, itemSizePx);
+
+  itemSizePx &&
+    invariant(swipeThreshold > 0, 'swipeThreshold must be positive');
+
   const itemSizePercents = visibleItemsCount ? 1 / visibleItemsCount : 0;
 
   const isEndless = (infinite || loop) && childrenCount >= visibleItemsCount;
@@ -184,11 +198,16 @@ const RCarousel: React.FC<RCarouselProps> = ({
       const axis = +y;
 
       if (
-        (!down && Math.abs(movement[axis]) > itemSizePx * 0.5) ||
+        (!down && Math.abs(movement[axis]) >= swipeThreshold) ||
         Math.abs(movement[axis]) / itemSizePx >= visibleItemsCount
       ) {
         cancel();
-        if (onMoveRequested(-Math.round(movement[axis] / itemSizePx)) === 0) {
+        if (
+          onMoveRequested(
+            -Math.sign(movement[axis]) *
+              Math.max(Math.round(Math.abs(movement[axis]) / itemSizePx), 1)
+          ) === 0
+        ) {
           // for example, when we have reached the border, we must get back current positions
           // @ts-ignore
           set((i) => ({ d: actors[i].anim.d, immediate: false }));

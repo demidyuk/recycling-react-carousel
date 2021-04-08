@@ -3,3 +3,4 @@ export * from './clampCursor';
 export * from './classNames';
 export * from './getLocalIndex';
 export * from './getSnapshot';
+export * from './unit';

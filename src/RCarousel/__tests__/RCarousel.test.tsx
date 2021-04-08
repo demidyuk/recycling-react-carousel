@@ -126,3 +126,19 @@ test('check cursor shifts after adding or removing a slide in the infinite mode'
   rerender(<Component>{getTestSlides(slidesCount)}</Component>);
   expect(changeHandler).toHaveBeenCalledWith(100);
 });
+
+test('check swipe with swipeThreshold', () => {
+  const changeHandler = jest.fn();
+
+  const { Component } = buildTestCarousel({
+    baseProps: {
+      onCursorChange: changeHandler,
+      swipeThreshold: '30px',
+    },
+  });
+
+  const { container } = render(<Component />);
+  const [carousel] = Array.from<any>(container.children);
+  swipe(carousel, [1000], [970]);
+  expect(changeHandler).toHaveBeenCalledWith(1);
+});
