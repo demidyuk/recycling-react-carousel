@@ -78,11 +78,10 @@ const RCarousel: React.FC<RCarouselProps> = ({
       Number.isSafeInteger(cursor - childrenCount),
     `cursor is not valid, got ${cursor}`
   );
-  invariant(maxItemSize >= 0, `maxItemSize must be positive or zero`);
-  invariant(
-    (displayAtOnce ?? 0) >= 0,
-    `displayAtOnce must be positive or zero`
-  );
+
+  containerSize && invariant(maxItemSize > 0, `maxItemSize must be positive`);
+
+  invariant((displayAtOnce ?? 1) > 0, `displayAtOnce must be positive integer`);
 
   const itemSizePxOriginal =
     maxItemSize > containerSize ? containerSize : maxItemSize;
