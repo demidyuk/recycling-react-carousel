@@ -1,5 +1,5 @@
 import clamp from 'lodash.clamp';
-import { getSnapshot, animTo } from '.';
+import { getSnapshot, animTo } from './index';
 
 export type Actor = {
   globalChildIndex: number;
