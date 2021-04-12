@@ -3,10 +3,15 @@ import React, {
   useRef,
   memo,
   useCallback,
-  useReducer,
   Children,
+  useState,
 } from 'react';
-import { useOnResize, usePrevious, useNeedUpdate } from '../hooks';
+import { animated, useSprings } from 'react-spring';
+import { useDrag } from 'react-use-gesture';
+import styles from './RCarousel.module.css';
+import invariant from 'tiny-invariant';
+import inRange from 'lodash.inrange';
+import { useOnResize } from '../hooks';
 import {
   clampCursor,
   classNames,
@@ -14,12 +19,12 @@ import {
   UnitValue,
   parsePx,
 } from './helpers';
-import { reducer, initState } from './reducer';
-import { animated, useSprings } from 'react-spring';
-import { useDrag } from 'react-use-gesture';
-import styles from './RCarousel.module.css';
-import invariant from 'tiny-invariant';
-import inRange from 'lodash.inrange';
+import { useRCalc } from './useRCalc';
+
+export enum ChangeReason {
+  USER_SWIPE = 'user_swipe',
+  SHIFT = 'shift',
+}
 
 export interface RCarouselProps extends React.HTMLAttributes<HTMLDivElement> {
   cursor?: number;
@@ -33,9 +38,10 @@ export interface RCarouselProps extends React.HTMLAttributes<HTMLDivElement> {
   infinite?: boolean;
   loop?: boolean;
   swipeThreshold?: UnitValue;
+  includeChangeReason?: boolean;
   onNextSwipe?: () => void;
   onPrevSwipe?: () => void;
-  onCursorChange?: (cursor: number) => void;
+  onCursorChange?: (cursor: number, reason?: ChangeReason) => void;
   onRangeChange?: (...args: number[]) => void;
   onVisibleActorsChange?: (actorsCount: number) => void;
 }
@@ -54,6 +60,7 @@ const RCarousel: React.FC<RCarouselProps> = ({
   infinite = false,
   loop = false,
   swipeThreshold = '50%',
+  includeChangeReason = false,
   onNextSwipe = () => {},
   onPrevSwipe = () => {},
   onCursorChange = () => {},
@@ -65,12 +72,12 @@ const RCarousel: React.FC<RCarouselProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, containerHeight] = useOnResize(containerRef);
   const containerSize = x ? containerWidth : containerHeight;
-  const [{ actors, curCursor }, dispatch] = useReducer(reducer, initState);
-  const [springs, set] = useSprings(actors.length, (i) => actors[i].anim);
+  const [internalCursor, setInternalCursor] = useState<number | undefined>();
+  const [, __updateState] = useState<any>();
+  const refresh = () => __updateState({});
   const childrenArr = Children.toArray(children);
   const childrenCount = Children.count(children);
-  const prevChildrenCount = usePrevious<number>(childrenCount) ?? childrenCount;
-  const cursor: number = cursorProp ?? curCursor ?? defaultCursor;
+  const cursor: number = internalCursor ?? cursorProp ?? defaultCursor;
   maxItemSize = parsePx(maxItemSize, containerSize);
 
   invariant(
@@ -81,7 +88,11 @@ const RCarousel: React.FC<RCarouselProps> = ({
 
   containerSize && invariant(maxItemSize > 0, `maxItemSize must be positive`);
 
-  invariant((displayAtOnce ?? 1) > 0, `displayAtOnce must be positive integer`);
+  displayAtOnce !== undefined &&
+    invariant(
+      (displayAtOnce ?? 1) > 0 && Number.isSafeInteger(displayAtOnce),
+      `displayAtOnce must be positive integer`
+    );
 
   const itemSizePxOriginal =
     maxItemSize > containerSize ? containerSize : maxItemSize;
@@ -104,36 +115,36 @@ const RCarousel: React.FC<RCarouselProps> = ({
     isEndless && loop ? -Infinity : 0,
     isEndless ? Infinity : childrenCount && childrenCount - 1,
   ];
-  const [, prevMax] = usePrevious([min, max]) ?? [min, max];
 
-  const needRangeUpdate = useNeedUpdate(min, max, childrenCount);
-  const needVICUpdate = useNeedUpdate(visibleItemsCount);
-  const needViewUpdate =
-    useNeedUpdate(cursor) || needRangeUpdate || needVICUpdate;
+  const { actors, curCursor, shouldUpdateCursor } = useRCalc({
+    cursor,
+    visibleItemsCount,
+    childrenCount,
+    min,
+    max,
+  });
 
-  const clamp = useCallback(
-    (cursor) => {
-      return clampCursor(cursor, min, max);
+  const [springs, set] = useSprings(actors.length, (i) => actors[i].anim);
+  // @ts-ignore
+  set((i) => actors[i].anim);
+
+  const fireChange = useCallback(
+    (cursor: number, reason?: ChangeReason) => {
+      includeChangeReason
+        ? onCursorChange(cursor, reason)
+        : onCursorChange(cursor);
+      if (cursorProp === undefined) {
+        setInternalCursor(cursor);
+      } else {
+        refresh();
+      }
     },
-    [max, min]
-  );
-
-  const update = useCallback(
-    ({ cursor: nextCursor = cursor, ...rest } = {}) => {
-      dispatch({
-        type: 'UPDATE',
-        payload: {
-          cursor: clamp(nextCursor),
-          visibleItemsCount,
-          ...rest,
-        },
-      });
-    },
-    [clamp, cursor, visibleItemsCount]
+    [cursorProp, includeChangeReason, onCursorChange]
   );
 
   const onMoveRequested = useCallback(
     (step: number) => {
+      const clamp = (cursor: number) => clampCursor(cursor, min, max);
       const clampedCursor = clamp(cursor);
       const nextCursor = clamp(clampedCursor + step);
       const d = nextCursor - clampedCursor;
@@ -142,53 +153,13 @@ const RCarousel: React.FC<RCarouselProps> = ({
       } else if (step < 0) {
         onPrevSwipe();
       }
-      if (d) {
-        onCursorChange(nextCursor);
-        update({ cursor: nextCursor });
-      }
+
+      d && fireChange(nextCursor, ChangeReason.USER_SWIPE);
+
       return d;
     },
-    [clamp, cursor, onNextSwipe, onPrevSwipe, onCursorChange, update]
+    [cursor, min, max, onNextSwipe, onPrevSwipe, fireChange]
   );
-
-  useEffect(
-    () => void (needRangeUpdate && onRangeChange(min, max, childrenCount)),
-    [onRangeChange, min, max, childrenCount, needRangeUpdate]
-  );
-
-  useEffect(() => {
-    if (needViewUpdate) {
-      const shift =
-        Math.floor(clamp(curCursor ?? cursor) / prevChildrenCount) *
-        (childrenCount - prevChildrenCount);
-
-      update({
-        shift,
-      });
-
-      shift && onCursorChange(cursor + shift);
-    }
-  }, [
-    childrenCount,
-    clamp,
-    curCursor,
-    cursor,
-    needRangeUpdate,
-    needViewUpdate,
-    onCursorChange,
-    prevChildrenCount,
-    update,
-  ]);
-
-  useEffect(
-    () => void (needVICUpdate && onVisibleActorsChange(visibleItemsCount)),
-    [visibleItemsCount, onVisibleActorsChange, needVICUpdate]
-  );
-
-  useEffect(() => {
-    // @ts-ignore
-    set((i) => actors[i].anim);
-  }, [actors, set]);
 
   const bind = useDrag(
     ({ down, movement, cancel, canceled }) => {
@@ -222,6 +193,24 @@ const RCarousel: React.FC<RCarouselProps> = ({
     { delay: 1000 }
   );
 
+  useEffect(
+    () =>
+      void (shouldUpdateCursor && fireChange(curCursor, ChangeReason.SHIFT)),
+    [curCursor, shouldUpdateCursor, fireChange]
+  );
+
+  useEffect(() => void onRangeChange(min, max, childrenCount), [
+    onRangeChange,
+    min,
+    max,
+    childrenCount,
+  ]);
+
+  useEffect(() => void onVisibleActorsChange(visibleItemsCount), [
+    visibleItemsCount,
+    onVisibleActorsChange,
+  ]);
+
   return (
     <div
       ref={containerRef}
@@ -237,8 +226,8 @@ const RCarousel: React.FC<RCarouselProps> = ({
     >
       {springs.map(({ d }, index) => {
         const { globalChildIndex } = actors[index];
-        const child = inRange(globalChildIndex, min, prevMax && prevMax + 1)
-          ? childrenArr[getLocalIndex(globalChildIndex, prevChildrenCount)]
+        const child = inRange(globalChildIndex, min, max && max + 1)
+          ? childrenArr[getLocalIndex(globalChildIndex, childrenCount)]
           : undefined;
 
         return (
