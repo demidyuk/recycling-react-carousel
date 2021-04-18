@@ -1,5 +1,7 @@
-import clamp from 'lodash.clamp';
-import { getSnapshot, animTo } from './index';
+import clamp from 'lodash/clamp';
+import times from 'lodash/times';
+import { animTo } from './animTo';
+import { getSnapshot } from './getSnapshot';
 
 export type Actor = {
   globalChildIndex: number;
@@ -46,13 +48,15 @@ export function calcActors(
       totalItemsCount
     : previousResult.actorsState;
 
-  const curRoles = Array(totalItemsCount)
-    .fill(undefined)
-    .map((_, i, arr) => (i + previousResult.actorsState) % arr.length);
+  const curRoles = times(
+    totalItemsCount,
+    (i) => (i + previousResult.actorsState) % totalItemsCount
+  );
 
-  const nextRoles = Array(totalItemsCount)
-    .fill(undefined)
-    .map((_, i, arr) => (i + newActorsState) % arr.length);
+  const nextRoles = times(
+    totalItemsCount,
+    (i) => (i + newActorsState) % totalItemsCount
+  );
 
   for (let i = 0, actorsCopy = actors.slice(); i < curRoles.length; i++) {
     actors[curRoles[i]] = actorsCopy[i];

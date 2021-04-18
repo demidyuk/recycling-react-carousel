@@ -6,6 +6,9 @@ import './tools/patchCreateEvent';
 jest.mock('../../hooks/useOnResize');
 // jest.mock('../helpers/animTo');
 
+const DEFAULT_WINDOW_WIDTH = 1000;
+const DEFAULT_WINDOW_HEIGHT = 200;
+
 beforeAll(() => {
   window.resizeTo = function resizeTo(width, height) {
     Object.assign(this, {
@@ -18,7 +21,7 @@ beforeAll(() => {
 });
 
 beforeEach(() => {
-  window.resizeTo(1000, 200);
+  window.resizeTo(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
 });
 
 test('check defaultCursor prop', () => {
@@ -52,10 +55,10 @@ describe('check slides switching on swiping (X axis)', () => {
   });
 
   test.each([
-    [1000, 0, 0, 1],
-    [1000, 0, 1, 2],
-    [0, 1000, 2, 1],
-    [0, 1000, 1, 0],
+    [DEFAULT_WINDOW_WIDTH, 0, 0, 1],
+    [DEFAULT_WINDOW_WIDTH, 0, 1, 2],
+    [0, DEFAULT_WINDOW_WIDTH, 2, 1],
+    [0, DEFAULT_WINDOW_WIDTH, 1, 0],
   ])(
     'swipe from %ipx to %ipx (cursor %i -> cursor %i) ',
     (from, to, cursorFrom, cursorTo) => {
@@ -77,10 +80,10 @@ describe('check slides switching on swiping (Y axis)', () => {
   });
 
   test.each([
-    [200, 0, 0, 1],
-    [200, 0, 1, 2],
-    [0, 200, 2, 1],
-    [0, 200, 1, 0],
+    [DEFAULT_WINDOW_HEIGHT, 0, 0, 1],
+    [DEFAULT_WINDOW_HEIGHT, 0, 1, 2],
+    [0, DEFAULT_WINDOW_HEIGHT, 2, 1],
+    [0, DEFAULT_WINDOW_HEIGHT, 1, 0],
   ])(
     'swipe from %ipx to %ipx (cursor %i -> cursor %i) ',
     (from, to, cursorFrom, cursorTo) => {
@@ -129,16 +132,48 @@ test('check cursor shifts after adding or removing a slide in the infinite mode'
 
 test('check swipe with swipeThreshold', () => {
   const changeHandler = jest.fn();
+  const thresholdPx = 30;
 
   const { Component } = buildTestCarousel({
     baseProps: {
       onCursorChange: changeHandler,
-      swipeThreshold: '30px',
+      swipeThreshold: `${thresholdPx}px`,
     },
   });
 
   const { container } = render(<Component />);
   const [carousel] = Array.from<any>(container.children);
-  swipe(carousel, [1000], [970]);
+  swipe(carousel, [DEFAULT_WINDOW_WIDTH], [DEFAULT_WINDOW_WIDTH - thresholdPx]);
   expect(changeHandler).toHaveBeenCalledWith(1);
+});
+
+describe('check displayAtOnce prop', () => {
+  const visibleActorsChangeHandler = jest.fn();
+
+  const { Component } = buildTestCarousel({
+    baseProps: {
+      displayAtOnce: [
+        { value: 1 },
+        { breakpoint: 800, value: 3 },
+        { breakpoint: 400, value: 2 },
+      ],
+      onVisibleActorsChange: visibleActorsChangeHandler,
+    },
+  });
+
+  test.each([
+    [1000, 3],
+    [500, 2],
+    [200, 1],
+  ])(
+    'resizing window width to %ipx should display %i slide(s) at once',
+    (width, visibleSlidesCount) => {
+      window.resizeTo(width, DEFAULT_WINDOW_HEIGHT);
+      const { asFragment } = render(<Component />);
+      expect(asFragment()).toMatchSnapshot();
+      expect(visibleActorsChangeHandler).toHaveBeenCalledWith(
+        visibleSlidesCount
+      );
+    }
+  );
 });

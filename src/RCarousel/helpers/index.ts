@@ -5,3 +5,5 @@ export * from './getLocalIndex';
 export * from './getSnapshot';
 export * from './unit';
 export * from './calcActors';
+export * from './getDisplayedSlidesCount';
+export * from './types';

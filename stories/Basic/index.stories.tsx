@@ -55,6 +55,7 @@ Basic.args = {
   displayAtOnce: 3,
   style: { height: 250 },
   itemWrapperStyle: { padding: 10 },
+  userSelect: false,
 };
 
 export const BasicInfinite = Template.bind({});

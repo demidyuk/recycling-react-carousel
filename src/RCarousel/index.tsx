@@ -6,18 +6,20 @@ import React, {
   Children,
   useState,
 } from 'react';
-import { animated, useSprings } from 'react-spring';
+import { animated, useSprings, SpringConfig, config } from 'react-spring';
 import { useDrag } from 'react-use-gesture';
 import styles from './RCarousel.module.css';
 import invariant from 'tiny-invariant';
-import inRange from 'lodash.inrange';
-import { useOnResize } from '../hooks';
+import inRange from 'lodash/inRange';
+import { useOnResize, useWindowWidth, useForceUpdate } from '../hooks';
 import {
   clampCursor,
   classNames,
   getLocalIndex,
   UnitValue,
   parsePx,
+  getDisplayedSlidesCount,
+  DisplayRule,
 } from './helpers';
 import { useRCalc } from './useRCalc';
 
@@ -30,7 +32,7 @@ export interface RCarouselProps extends React.HTMLAttributes<HTMLDivElement> {
   cursor?: number;
   defaultCursor?: number;
   maxItemSize?: UnitValue;
-  displayAtOnce?: number;
+  displayAtOnce?: number | DisplayRule[];
   itemWrapperStyle?: React.CSSProperties;
   itemWrapperClass?: string;
   gestures?: boolean;
@@ -38,6 +40,8 @@ export interface RCarouselProps extends React.HTMLAttributes<HTMLDivElement> {
   infinite?: boolean;
   loop?: boolean;
   swipeThreshold?: UnitValue;
+  userSelect?: boolean;
+  springConfig?: SpringConfig;
   includeChangeReason?: boolean;
   onNextSwipe?: () => void;
   onPrevSwipe?: () => void;
@@ -60,7 +64,9 @@ const RCarousel: React.FC<RCarouselProps> = ({
   infinite = false,
   loop = false,
   swipeThreshold = '50%',
+  userSelect = true,
   includeChangeReason = false,
+  springConfig = config.default,
   onNextSwipe = () => {},
   onPrevSwipe = () => {},
   onCursorChange = () => {},
@@ -70,15 +76,16 @@ const RCarousel: React.FC<RCarouselProps> = ({
 }) => {
   const x = !y;
   const containerRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, containerHeight] = useOnResize(containerRef);
-  const containerSize = x ? containerWidth : containerHeight;
+  const containerMainSideSize = useOnResize(containerRef)[
+    x ? 'width' : 'height'
+  ];
+  const windowWidth = useWindowWidth();
   const [internalCursor, setInternalCursor] = useState<number | undefined>();
-  const [, __updateState] = useState<any>();
-  const refresh = () => __updateState({});
+  const forceUpdate = useForceUpdate();
   const childrenArr = Children.toArray(children);
-  const childrenCount = Children.count(children);
+  const childrenCount = childrenArr.length;
   const cursor: number = internalCursor ?? cursorProp ?? defaultCursor;
-  maxItemSize = parsePx(maxItemSize, containerSize);
+  maxItemSize = parsePx(maxItemSize, containerMainSideSize);
 
   invariant(
     Number.isSafeInteger(cursor + childrenCount) &&
@@ -86,8 +93,10 @@ const RCarousel: React.FC<RCarouselProps> = ({
     `cursor is not valid, got ${cursor}`
   );
 
-  containerSize && invariant(maxItemSize > 0, `maxItemSize must be positive`);
+  containerMainSideSize &&
+    invariant(maxItemSize > 0, `maxItemSize must be positive`);
 
+  displayAtOnce = getDisplayedSlidesCount(displayAtOnce, windowWidth);
   displayAtOnce !== undefined &&
     invariant(
       (displayAtOnce ?? 1) > 0 && Number.isSafeInteger(displayAtOnce),
@@ -95,13 +104,17 @@ const RCarousel: React.FC<RCarouselProps> = ({
     );
 
   const itemSizePxOriginal =
-    maxItemSize > containerSize ? containerSize : maxItemSize;
+    maxItemSize > containerMainSideSize ? containerMainSideSize : maxItemSize;
 
   const visibleItemsCount =
     displayAtOnce ??
-    Math.ceil(itemSizePxOriginal ? containerSize / itemSizePxOriginal : 0);
+    Math.ceil(
+      itemSizePxOriginal ? containerMainSideSize / itemSizePxOriginal : 0
+    );
 
-  const itemSizePx = visibleItemsCount ? containerSize / visibleItemsCount : 0;
+  const itemSizePx = visibleItemsCount
+    ? containerMainSideSize / visibleItemsCount
+    : 0;
   swipeThreshold = parsePx(swipeThreshold, itemSizePx);
 
   itemSizePx &&
@@ -124,9 +137,12 @@ const RCarousel: React.FC<RCarouselProps> = ({
     max,
   });
 
-  const [springs, set] = useSprings(actors.length, (i) => actors[i].anim);
+  const getSpringProps = (i: number) => {
+    return { ...actors[i].anim, config: { ...springConfig } };
+  };
+  const [springs, set] = useSprings(actors.length, getSpringProps);
   // @ts-ignore
-  set((i) => actors[i].anim);
+  set(getSpringProps);
 
   const fireChange = useCallback(
     (cursor: number, reason?: ChangeReason) => {
@@ -136,10 +152,10 @@ const RCarousel: React.FC<RCarouselProps> = ({
       if (cursorProp === undefined) {
         setInternalCursor(cursor);
       } else {
-        refresh();
+        forceUpdate();
       }
     },
-    [cursorProp, includeChangeReason, onCursorChange]
+    [cursorProp, forceUpdate, includeChangeReason, onCursorChange]
   );
 
   const onMoveRequested = useCallback(
@@ -180,11 +196,12 @@ const RCarousel: React.FC<RCarouselProps> = ({
         ) {
           // for example, when we have reached the border, we must get back current positions
           // @ts-ignore
-          set((i) => ({ d: actors[i].anim.d, immediate: false }));
+          set((i) => ({ ...getSpringProps(i), immediate: false }));
         }
       } else {
         // @ts-ignore
         set((i) => ({
+          ...getSpringProps(i),
           d: actors[i].anim.d + (down ? movement[axis] / itemSizePx : 0),
           immediate: false,
         }));
@@ -217,6 +234,7 @@ const RCarousel: React.FC<RCarouselProps> = ({
       className={classNames([
         styles.container,
         gestures && styles.touchActionNone,
+        !userSelect && styles.userSelectNone,
         styles.w100,
         styles.h100,
         className,
