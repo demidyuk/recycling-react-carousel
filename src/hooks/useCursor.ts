@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useReducer } from 'react';
 import { clampCursor, getLocalIndex } from '../RCarousel/helpers';
 
 interface CursorProps {
@@ -6,43 +6,101 @@ interface CursorProps {
   step?: number;
 }
 
+interface GoToOptions {
+  length?: number;
+}
+
+type CursorState = {
+  globalCursor: number;
+  from: number;
+  to: number;
+  slidesCount: number;
+};
+
+const getLocalCursor = (globalCursor: number, slidesCount: number) =>
+  getLocalIndex(globalCursor, slidesCount);
+
+const getInitialState = (init: number): CursorState => ({
+  globalCursor: init,
+  from: 0,
+  to: 0,
+  slidesCount: 0,
+});
+
+const cursorReducer = (state: CursorState, action: any) => {
+  switch (action.type) {
+    case 'globalCursorChanged': {
+      const cursor = action.payload;
+
+      return {
+        ...state,
+        globalCursor: clampCursor(
+          typeof cursor === 'function' ? cursor(state.globalCursor) : cursor,
+          state.from,
+          state.to
+        ),
+      };
+    }
+    case 'localCursorChanged': {
+      const { cursor, ...options } = action.payload;
+
+      return {
+        ...state,
+        globalCursor:
+          clampCursor(
+            typeof cursor === 'function' ? cursor(state.globalCursor) : cursor,
+            0,
+            options.length - 1
+          ) -
+          getLocalCursor(state.globalCursor, state.slidesCount) +
+          state.globalCursor,
+      };
+    }
+    case 'rangeChanged': {
+      const [from, to, slidesCount] = action.payload;
+
+      return {
+        ...state,
+        globalCursor: clampCursor(state.globalCursor, from, to),
+        from,
+        to,
+        slidesCount,
+      };
+    }
+    default:
+      return state;
+  }
+};
+
 export function useCursor({ init = 0, step = 1 }: CursorProps = {}) {
-  const [[from, to, slidesCount], setRange] = useState<number[]>([0, 0, 0]);
-  const [globalCursor, set] = useState(init);
-  const getLocalCursor = (globalCursor: number, slidesCount: number) =>
-    getLocalIndex(globalCursor, slidesCount);
+  const [{ globalCursor, from, to, slidesCount }, dispatch] = useReducer(
+    cursorReducer,
+    getInitialState(init)
+  );
   const localCursor = getLocalCursor(globalCursor, slidesCount);
 
   const clampAndSet = useCallback(
-    (value: number | ((arg: number) => number)) => {
-      set((prev: number) =>
-        clampCursor(typeof value === 'function' ? value(prev) : value, from, to)
-      );
-    },
-    [from, to]
+    (value: number | ((arg: number) => number)) =>
+      dispatch({ type: 'globalCursorChanged', payload: value }),
+    []
   );
 
   const goTo = useCallback(
-    (value: number) =>
-      set(
-        (prevGlobalCursor: number) =>
-          clampCursor(value, 0, slidesCount - 1) -
-          getLocalCursor(prevGlobalCursor, slidesCount) +
-          prevGlobalCursor
-      ),
-    [slidesCount]
+    (value: number | ((arg: number) => number), options?: GoToOptions) =>
+      dispatch({
+        type: 'localCursorChanged',
+        payload: { cursor: value, ...options },
+      }),
+    []
   );
 
   const move = useCallback(
-    (step: number) => () =>
-      clampAndSet(
-        (globalCursor: number) => clampCursor(globalCursor, from, to) + step
-      ),
-    [clampAndSet, from, to]
+    (step: number) => () => clampAndSet((cursor) => cursor + step),
+    [clampAndSet]
   );
 
   const onRangeChange = useCallback(
-    (...range: number[]) => setRange(range),
+    (...range: number[]) => dispatch({ type: 'rangeChanged', payload: range }),
     []
   );
 
@@ -59,7 +117,6 @@ export function useCursor({ init = 0, step = 1 }: CursorProps = {}) {
     length: slidesCount,
     isMax,
     isMin,
-    setCursor: set,
     clampAndSet,
     goTo,
     move,
@@ -67,7 +124,7 @@ export function useCursor({ init = 0, step = 1 }: CursorProps = {}) {
     back,
     props: {
       cursor: globalCursor,
-      onCursorChange: set,
+      onCursorChange: clampAndSet,
       onRangeChange,
     },
     nextBtnProps: { onClick: next, disabled: isMax },
