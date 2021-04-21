@@ -30,6 +30,18 @@ test('check defaultCursor prop', () => {
   expect(asFragment()).toMatchSnapshot();
 });
 
+test('check carousel without slides', () => {
+  const { Component } = buildTestCarousel({ slidesCount: 0 });
+  const { asFragment } = render(<Component />);
+  expect(asFragment()).toMatchSnapshot();
+});
+
+test('check carousel with only one slide', () => {
+  const { Component } = buildTestCarousel({ slidesCount: 1 });
+  const { asFragment } = render(<Component />);
+  expect(asFragment()).toMatchSnapshot();
+});
+
 describe('check slides switching using cursor prop', () => {
   const { Component } = buildTestCarousel();
 
@@ -176,4 +188,19 @@ describe('check displayAtOnce prop', () => {
       );
     }
   );
+});
+
+test('check trimEnd prop', () => {
+  const changeHandler = jest.fn();
+
+  const { Component } = buildTestCarousel({
+    baseProps: {
+      displayAtOnce: 3,
+      onRangeChange: changeHandler,
+    },
+  });
+  const { rerender } = render(<Component cursor={2} />);
+  expect(changeHandler).toHaveBeenCalledWith(0, 2, 3);
+  rerender(<Component cursor={2} trimEnd={true} />);
+  expect(changeHandler).toHaveBeenCalledWith(0, 0, 3);
 });

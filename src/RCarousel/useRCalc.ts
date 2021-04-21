@@ -29,10 +29,11 @@ export function useRCalc({
 
   const calc = () => {
     const shift =
+      prevChildrenCount &&
       Math.floor(
         clampCursor(prevResult.cursor ?? cursor, min, max) / prevChildrenCount
       ) *
-      (childrenCount - prevChildrenCount);
+        (childrenCount - prevChildrenCount);
     const { cursor: curCursor, actors } = (calcResultRef.current = calcActors(
       prevResult,
       {

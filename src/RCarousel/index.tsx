@@ -11,6 +11,7 @@ import { useDrag } from 'react-use-gesture';
 import styles from './RCarousel.module.css';
 import invariant from 'tiny-invariant';
 import inRange from 'lodash/inRange';
+import clamp from 'lodash/clamp';
 import { useOnResize, useWindowWidth, useForceUpdate } from '../hooks';
 import {
   clampCursor,
@@ -42,6 +43,7 @@ export interface RCarouselProps extends React.HTMLAttributes<HTMLDivElement> {
   swipeThreshold?: UnitValue;
   userSelect?: boolean;
   springConfig?: SpringConfig;
+  trimEnd?: boolean;
   includeChangeReason?: boolean;
   onNextSwipe?: () => void;
   onPrevSwipe?: () => void;
@@ -65,6 +67,7 @@ const RCarousel: React.FC<RCarouselProps> = ({
   loop = false,
   swipeThreshold = '50%',
   userSelect = true,
+  trimEnd = false,
   includeChangeReason = false,
   springConfig = config.default,
   onNextSwipe = () => {},
@@ -124,10 +127,13 @@ const RCarousel: React.FC<RCarouselProps> = ({
 
   const isEndless = (infinite || loop) && childrenCount >= visibleItemsCount;
 
-  const [min, max] = [
+  const [min, originalMax] = [
     isEndless && loop ? -Infinity : 0,
     isEndless ? Infinity : childrenCount && childrenCount - 1,
   ];
+  const max = trimEnd
+    ? clamp(originalMax - (visibleItemsCount - 1), 0, Infinity)
+    : originalMax;
 
   const { actors, curCursor, shouldUpdateCursor } = useRCalc({
     cursor,
@@ -244,7 +250,11 @@ const RCarousel: React.FC<RCarouselProps> = ({
     >
       {springs.map(({ d }, index) => {
         const { globalChildIndex } = actors[index];
-        const child = inRange(globalChildIndex, min, max && max + 1)
+        const child = inRange(
+          globalChildIndex,
+          min,
+          originalMax + (childrenCount ? 1 : 0)
+        )
           ? childrenArr[getLocalIndex(globalChildIndex, childrenCount)]
           : undefined;
 

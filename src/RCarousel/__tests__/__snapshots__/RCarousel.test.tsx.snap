@@ -1,5 +1,57 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`check carousel with only one slide 1`] = `
+<DocumentFragment>
+  <div
+    class="container touchActionNone w100 h100"
+  >
+    <div
+      class="actor h100"
+      style="width: 100%; transform: translate3d(-100%, 0%, 0);"
+    />
+    <div
+      class="actor h100"
+      style="width: 100%; transform: translate3d(0%, 0%, 0);"
+    >
+      <div
+        class="childWrapper w100 h100"
+      >
+        <div
+          data-testid="slide1"
+        >
+          slide1
+        </div>
+      </div>
+    </div>
+    <div
+      class="actor h100"
+      style="width: 100%; transform: translate3d(100%, 0%, 0);"
+    />
+  </div>
+</DocumentFragment>
+`;
+
+exports[`check carousel without slides 1`] = `
+<DocumentFragment>
+  <div
+    class="container touchActionNone w100 h100"
+  >
+    <div
+      class="actor h100"
+      style="width: 100%; transform: translate3d(-100%, 0%, 0);"
+    />
+    <div
+      class="actor h100"
+      style="width: 100%; transform: translate3d(0%, 0%, 0);"
+    />
+    <div
+      class="actor h100"
+      style="width: 100%; transform: translate3d(100%, 0%, 0);"
+    />
+  </div>
+</DocumentFragment>
+`;
+
 exports[`check defaultCursor prop 1`] = `
 <DocumentFragment>
   <div
