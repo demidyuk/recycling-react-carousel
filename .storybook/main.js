@@ -1,7 +1,7 @@
 const cloneDeep = require('lodash.clonedeep');
 const path = require('path');
 
-const addSvgrSupport = (config) => {
+const useSvgr = (config) => {
   const fileLoaderRule = config.module.rules.find(
     (rule) => !Array.isArray(rule.test) && rule.test.test('.svg')
   );
@@ -23,7 +23,7 @@ const addSvgrSupport = (config) => {
   });
 };
 
-const addScssSupport = (config) => {
+const useSCSS = (config) => {
   config.module.rules.push({
     test: /\.scss$/,
     use: ['style-loader', 'css-loader', 'sass-loader'],
@@ -31,7 +31,7 @@ const addScssSupport = (config) => {
   });
 };
 
-const addCssModulesSupport = (config) => {
+const useCSSModules = (config) => {
   const ruleCssIndex = config.module.rules.findIndex(
     (rule) => rule.test.toString() === '/\\.css$/'
   );
@@ -58,16 +58,19 @@ const addCssModulesSupport = (config) => {
 };
 
 module.exports = {
-  stories: ['../stories/**/*.stories.@(ts|tsx|js|jsx)'],
+  stories: [
+    '../stories/**/*.stories.mdx',
+    '../stories/**/*.stories.@(js|jsx|ts|tsx)',
+  ],
   addons: ['@storybook/addon-links', '@storybook/addon-essentials'],
   // https://storybook.js.org/docs/react/configure/typescript#mainjs-configuration
   typescript: {
     check: true, // type-check stories during Storybook build
   },
-  webpackFinal(config) {
-    addSvgrSupport(config);
-    addScssSupport(config);
-    addCssModulesSupport(config);
+  webpackFinal: (config) => {
+    useCSSModules(config);
+    useSCSS(config);
+    useSvgr(config);
     return config;
   },
 };

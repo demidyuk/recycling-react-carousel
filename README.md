@@ -17,14 +17,8 @@ import React, { useState } from 'react';
 import RCarousel, { useCursor } from 'recycling-react-carousel';
 
 const BasicCarousel = () => {
-  const [items] = useState(
-    Array(6)
-      .fill(undefined)
-      .map((_, i) => i + 1)
-  );
-
   const { props, nextBtnProps, backBtnProps } = useCursor();
-  const slides = items.map((data) => <div key={data}>{data}</div>);
+  const slides = [1, 2, 3, 4, 5, 6].map((data) => <div key={data}>{data}</div>);
 
   return (
     <div>
