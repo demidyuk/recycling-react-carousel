@@ -1,7 +1,6 @@
 import React, {
   useEffect,
   useRef,
-  memo,
   useCallback,
   Children,
   useState,
@@ -29,7 +28,7 @@ export enum ChangeReason {
   SHIFT = 'shift',
 }
 
-export interface RCarouselProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface RCarouselProps extends React.HTMLAttributes<HTMLElement> {
   cursor?: number;
   defaultCursor?: number;
   maxItemSize?: UnitValue;
@@ -52,7 +51,18 @@ export interface RCarouselProps extends React.HTMLAttributes<HTMLDivElement> {
   onVisibleActorsChange?: (actorsCount: number) => void;
 }
 
-const RCarousel: React.FC<RCarouselProps> = ({
+/**
+ * The `RCarousel` component can be used to iterate over slides.
+ * Main idea is to render the end number of nodes which participate in carousel transitions
+ * to reduce memory consumption and page freezes when iterating over large collections.
+ * There are no controls like arrow buttons or bullets shipped with this component. It's up to you what UI provide to control.
+ *
+ * The are two modes:
+ *
+ *  - *uncontrolled*: just to be, the main purpose is testing because the only way to interact with carousel in this mode is gestures
+ *  - *controlled*: achieves by manipulating `cursor` prop, recommended way to use this carousel
+ */
+export const RCarousel: React.FC<RCarouselProps> = ({
   children,
   cursor: cursorProp,
   defaultCursor = 0,
@@ -291,5 +301,3 @@ const RCarousel: React.FC<RCarouselProps> = ({
     </div>
   );
 };
-
-export default memo(RCarousel);

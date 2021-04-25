@@ -1,6 +1,9 @@
 import React from 'react';
 
-const Card = ({ children, ...rest }: React.HTMLAttributes<HTMLDivElement>) => {
+const ExampleCard = ({
+  children,
+  ...rest
+}: React.HTMLAttributes<HTMLDivElement>) => {
   return (
     <div className="card shadow-sm h-100" {...rest}>
       <div className="d-flex align-items-center justify-content-center card-body p-2">
@@ -9,4 +12,4 @@ const Card = ({ children, ...rest }: React.HTMLAttributes<HTMLDivElement>) => {
     </div>
   );
 };
-export default Card;
+export default ExampleCard;

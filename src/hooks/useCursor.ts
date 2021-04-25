@@ -30,29 +30,38 @@ const getInitialState = (init: number): CursorState => ({
 const cursorReducer = (state: CursorState, action: any) => {
   switch (action.type) {
     case 'globalCursorChanged': {
-      const cursor = action.payload;
+      const { cursor, clamp } = action.payload;
 
       return {
         ...state,
-        globalCursor: clampCursor(
-          typeof cursor === 'function' ? cursor(state.globalCursor) : cursor,
-          state.from,
-          state.to
-        ),
+        globalCursor: clamp
+          ? clampCursor(
+              typeof cursor === 'function'
+                ? cursor(state.globalCursor)
+                : cursor,
+              state.from,
+              state.to
+            )
+          : cursor,
       };
     }
     case 'localCursorChanged': {
       const { cursor, ...options } = action.payload;
+      const length = options.length ?? state.slidesCount;
+      const curLocalCursor = getLocalCursor(
+        state.globalCursor,
+        state.slidesCount
+      );
 
       return {
         ...state,
         globalCursor:
           clampCursor(
-            typeof cursor === 'function' ? cursor(state.globalCursor) : cursor,
+            typeof cursor === 'function' ? cursor(curLocalCursor) : cursor,
             0,
-            options.length - 1
+            length - 1
           ) -
-          getLocalCursor(state.globalCursor, state.slidesCount) +
+          curLocalCursor +
           state.globalCursor,
       };
     }
@@ -81,7 +90,19 @@ export function useCursor({ init = 0, step = 1 }: CursorProps = {}) {
 
   const clampAndSet = useCallback(
     (value: number | ((arg: number) => number)) =>
-      dispatch({ type: 'globalCursorChanged', payload: value }),
+      dispatch({
+        type: 'globalCursorChanged',
+        payload: { cursor: value, clamp: true },
+      }),
+    []
+  );
+
+  const set = useCallback(
+    (value: number | ((arg: number) => number)) =>
+      dispatch({
+        type: 'globalCursorChanged',
+        payload: { cursor: value },
+      }),
     []
   );
 
@@ -124,7 +145,7 @@ export function useCursor({ init = 0, step = 1 }: CursorProps = {}) {
     back,
     props: {
       cursor: globalCursor,
-      onCursorChange: clampAndSet,
+      onCursorChange: set,
       onRangeChange,
     },
     nextBtnProps: { onClick: next, disabled: isMax },
