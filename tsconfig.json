@@ -1,6 +1,6 @@
 {
   "extends": "./tsconfig.build.json",
-  "include": ["src", "types", "stories"],
+  "include": ["src", "types", "stories", "test-config"],
   "exclude": [],
   "compilerOptions": {
     "rootDir": "./",

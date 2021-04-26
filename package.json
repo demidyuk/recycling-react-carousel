@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -13,6 +13,7 @@
     "start": "tsdx watch",
     "build": "tsdx build --tsconfig tsconfig.build.json",
     "test": "tsdx test --passWithNoTests",
+    "test-inspect": "node --inspect-brk ./node_modules/tsdx/dist/index.js test --passWithNoTests",
     "pretest": "bash ./pretest.sh",
     "lint": "tsdx lint src stories",
     "size": "size-limit",
@@ -36,7 +37,12 @@
     "endOfLine": "auto"
   },
   "name": "recycling-react-carousel",
-  "author": "Denis Demidyuk",
+  "author": "Denis Demidyuk <denisdemidyuk@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/demidyuk/recycling-react-carousel.git"
+  },
+  "homepage": "https://github.com/demidyuk/recycling-react-carousel",
   "module": "dist/recycling-react-carousel.esm.js",
   "size-limit": [
     {
@@ -50,6 +56,7 @@
   ],
   "devDependencies": {
     "@babel/core": "^7.13.8",
+    "@react-spring/mock-raf": "^1.1.1",
     "@size-limit/preset-small-lib": "^4.10.1",
     "@storybook/addon-essentials": "^6.1.21",
     "@storybook/addon-info": "^5.3.21",
@@ -59,7 +66,7 @@
     "@svgr/webpack": "^5.5.0",
     "@testing-library/jest-dom": "^5.11.9",
     "@testing-library/react": "^11.2.5",
-    "@types/lodash.clamp": "^4.0.6",
+    "@types/lodash": "^4.14.168",
     "@types/react": "^17.0.3",
     "@types/react-dom": "^17.0.2",
     "@types/resize-observer-browser": "^0.1.5",
@@ -72,6 +79,7 @@
     "husky": "^5.1.3",
     "identity-obj-proxy": "^3.0.0",
     "lodash.clonedeep": "^4.5.0",
+    "prettier": "^2.2.1",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-is": "^17.0.1",
@@ -79,13 +87,15 @@
     "sass": "^1.32.8",
     "sass-loader": "^10.1.1",
     "size-limit": "^4.10.1",
+    "snapshot-diff": "^0.8.1",
     "style-loader": "^2.0.0",
     "tsdx": "^0.14.1",
     "tslib": "^2.1.0",
     "typescript": "^4.2.3"
   },
   "dependencies": {
-    "lodash.clamp": "^4.0.3",
+    "lodash": "^4.17.21",
+    "lodash-es": "^4.17.21",
     "react-spring": "^8.0.27",
     "react-use-gesture": "^9.1.3",
     "tiny-invariant": "^1.1.0"
