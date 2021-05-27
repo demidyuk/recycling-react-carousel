@@ -1,28 +1,56 @@
-import { useEffect, useState, useRef, RefObject } from 'react';
+import { useEffect, useState, useRef, RefObject, useCallback } from 'react';
 
-export function useOnResize(containerRef: RefObject<HTMLDivElement>) {
-  const [size, setSize] = useState({ width: 0, height: 0 });
-  const observeRef = useRef<ResizeObserver>();
+type Size = {
+  width: number;
+  height: number;
+};
+
+export function useOnResize(staticRefs: RefObject<HTMLElement | null>[] = []) {
+  const [sizes, setSizes] = useState<Size[]>([]);
+  const refs = useRef(staticRefs);
+  const observeRef = useRef<ResizeObserver>(
+    new ResizeObserver(() => {
+      const nodes = refs.current
+        .filter(({ current }) => current)
+        .map(({ current }) => current) as HTMLElement[];
+
+      setSizes(
+        nodes.map(({ offsetWidth: width, offsetHeight: height }) => ({
+          width,
+          height,
+        }))
+      );
+    })
+  );
+
+  const update = useCallback(() => {
+    const ro = observeRef.current;
+    ro.disconnect();
+    refs.current.forEach(({ current: node }) => node && ro.observe(node));
+  }, []);
+
+  const add = useCallback((ref: RefObject<HTMLElement>) => {
+    const ro = observeRef.current;
+    ro.observe(ref.current as Element);
+    refs.current.push(ref);
+  }, []);
+
+  const remove = useCallback((ref: RefObject<HTMLElement>) => {
+    const ro = observeRef.current;
+    const i = refs.current.indexOf(ref);
+    if (~i) {
+      ro.unobserve(refs.current[i].current as Element);
+      refs.current.splice(i, 1);
+    }
+  }, []);
 
   useEffect(() => {
-    if (!containerRef.current) {
-      return;
-    }
+    const ro = observeRef.current;
 
-    observeRef.current = new ResizeObserver(() => {
-      if (containerRef.current) {
-        const {
-          offsetWidth: width,
-          offsetHeight: height,
-        } = containerRef.current;
-        setSize({ width, height });
-      }
-    });
+    update();
 
-    observeRef.current.observe(containerRef.current);
+    return () => ro.disconnect();
+  }, [update]);
 
-    return () => observeRef.current?.disconnect();
-  }, [containerRef]);
-
-  return size;
+  return { add, remove, update, sizes };
 }

@@ -41,3 +41,7 @@
 .user-select-none {
   user-select: none;
 }
+
+.display-none {
+  display: none !important;
+}
