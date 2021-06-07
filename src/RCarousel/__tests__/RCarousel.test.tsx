@@ -220,3 +220,39 @@ test('check trimEnd prop', () => {
   rerender(<Component cursor={2} trimEnd={true} />);
   expect(changeHandler).toHaveBeenCalledWith(0, 0, 3);
 });
+
+test('check autosize prop', () => {
+  useOnResize.mockImplementation(
+    getUseOnResizeMock([
+      { width: 250, height: 0 },
+      { width: 250, height: 0 },
+      { width: 250, height: 20 },
+      { width: 250, height: 30 },
+      { width: 250, height: 10 },
+      { width: 250, height: 40 },
+    ])
+  );
+
+  const { Component } = buildTestCarousel({
+    baseProps: {
+      displayAtOnce: 2,
+      autosize: true,
+    },
+  });
+  const { rerender, asFragment } = render(<Component cursor={0} />);
+  const curFragment = asFragment();
+
+  useOnResize.mockImplementation(
+    getUseOnResizeMock([
+      { width: 250, height: 30 },
+      { width: 250, height: 40 },
+      { width: 250, height: 10 },
+      { width: 250, height: 50 },
+      { width: 250, height: 20 },
+      { width: 250, height: 60 },
+    ])
+  );
+
+  rerender(<Component cursor={2} />);
+  expect(curFragment).toMatchDiffSnapshot(asFragment());
+});
