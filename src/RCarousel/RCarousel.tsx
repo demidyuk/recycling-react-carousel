@@ -13,7 +13,12 @@ import invariant from 'tiny-invariant';
 import inRange from 'lodash/inRange';
 import clamp from 'lodash/clamp';
 import getMax from 'lodash/max';
-import { useOnResize, useWindowWidth, useForceUpdate } from '../hooks';
+import {
+  useOnResize,
+  useWindowWidth,
+  useForceUpdate,
+  useShouldUpdate,
+} from '../hooks';
 import {
   clampCursor,
   classNames,
@@ -186,6 +191,9 @@ export const RCarousel: React.FC<RCarouselProps> = ({
     max,
   });
 
+  const shouldRangeUpdate = useShouldUpdate(min, max, childrenCount);
+  const shouldVICUpdate = useShouldUpdate(visibleItemsCount);
+
   const getSpringProps = (i: number) => {
     return { ...actors[i].anim, config: { ...springConfig } };
   };
@@ -267,17 +275,15 @@ export const RCarousel: React.FC<RCarouselProps> = ({
     [curCursor, shouldUpdateCursor, fireChange]
   );
 
-  useEffect(() => void onRangeChange(min, max, childrenCount), [
-    onRangeChange,
-    min,
-    max,
-    childrenCount,
-  ]);
+  useEffect(
+    () => void (shouldRangeUpdate && onRangeChange(min, max, childrenCount)),
+    [onRangeChange, min, max, childrenCount, shouldRangeUpdate]
+  );
 
-  useEffect(() => void onVisibleActorsChange(visibleItemsCount), [
-    visibleItemsCount,
-    onVisibleActorsChange,
-  ]);
+  useEffect(
+    () => void (shouldVICUpdate && onVisibleActorsChange(visibleItemsCount)),
+    [visibleItemsCount, onVisibleActorsChange, shouldVICUpdate]
+  );
 
   return (
     <div
