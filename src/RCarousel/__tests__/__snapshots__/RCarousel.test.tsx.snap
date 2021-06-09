@@ -8,7 +8,7 @@ Snapshot Diff:
 @@ -1,29 +1,29 @@
   <DocumentFragment>
     <div
-      class="container touchActionNone w100 h100"
+      class="container touchActionPanY w100 h100"
 -     style="height: 40px;"
 +     style="height: 60px;"
     >
@@ -83,7 +83,7 @@ Snapshot Diff:
 exports[`check carousel with only one slide 1`] = `
 <DocumentFragment>
   <div
-    class="container touchActionNone w100 h100"
+    class="container touchActionPanY w100 h100"
   >
     <div
       class="actor h100"
@@ -122,7 +122,7 @@ exports[`check carousel with only one slide 1`] = `
 exports[`check carousel without slides 1`] = `
 <DocumentFragment>
   <div
-    class="container touchActionNone w100 h100"
+    class="container touchActionPanY w100 h100"
   >
     <div
       class="actor h100"
@@ -155,7 +155,7 @@ exports[`check carousel without slides 1`] = `
 exports[`check defaultCursor prop 1`] = `
 <DocumentFragment>
   <div
-    class="container touchActionNone w100 h100"
+    class="container touchActionPanY w100 h100"
   >
     <div
       class="actor h100"
@@ -200,7 +200,7 @@ exports[`check defaultCursor prop 1`] = `
 exports[`check displayAtOnce prop resizing window width to 200px should display 1 slide(s) at once 1`] = `
 <DocumentFragment>
   <div
-    class="container touchActionNone w100 h100"
+    class="container touchActionPanY w100 h100"
   >
     <div
       class="actor h100"
@@ -245,7 +245,7 @@ exports[`check displayAtOnce prop resizing window width to 200px should display 
 exports[`check displayAtOnce prop resizing window width to 500px should display 2 slide(s) at once 1`] = `
 <DocumentFragment>
   <div
-    class="container touchActionNone w100 h100"
+    class="container touchActionPanY w100 h100"
   >
     <div
       class="actor h100"
@@ -320,7 +320,7 @@ exports[`check displayAtOnce prop resizing window width to 500px should display 
 exports[`check displayAtOnce prop resizing window width to 1000px should display 3 slide(s) at once 1`] = `
 <DocumentFragment>
   <div
-    class="container touchActionNone w100 h100"
+    class="container touchActionPanY w100 h100"
   >
     <div
       class="actor h100"
@@ -423,7 +423,7 @@ Snapshot Diff:
 
 @@ -2,11 +2,11 @@
     <div
-      class="container touchActionNone w100 h100"
+      class="container touchActionPanY w100 h100"
     >
       <div
         class="actor h100"
@@ -469,7 +469,7 @@ Snapshot Diff:
 
 @@ -2,11 +2,11 @@
     <div
-      class="container touchActionNone w100 h100"
+      class="container touchActionPanY w100 h100"
     >
       <div
         class="actor h100"
@@ -515,7 +515,7 @@ Snapshot Diff:
 
 @@ -2,19 +2,25 @@
     <div
-      class="container touchActionNone w100 h100"
+      class="container touchActionPanY w100 h100"
     >
       <div
         class="actor h100"
@@ -565,7 +565,7 @@ Snapshot Diff:
 
 @@ -2,25 +2,19 @@
     <div
-      class="container touchActionNone w100 h100"
+      class="container touchActionPanY w100 h100"
     >
       <div
         class="actor h100"
@@ -615,7 +615,7 @@ Snapshot Diff:
 
 @@ -2,11 +2,11 @@
     <div
-      class="container touchActionNone w100 h100"
+      class="container touchActionPanY w100 h100"
     >
       <div
         class="actor h100"
@@ -665,7 +665,7 @@ Snapshot Diff:
 
 @@ -2,19 +2,25 @@
     <div
-      class="container touchActionNone w100 h100"
+      class="container touchActionPanY w100 h100"
     >
       <div
         class="actor h100"

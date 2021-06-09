@@ -34,8 +34,12 @@
   height: 100%;
 }
 
-.touch-action-none {
-  touch-action: none;
+.touch-action-pan-x {
+  touch-action: pan-x;
+}
+
+.touch-action-pan-y {
+  touch-action: pan-y;
 }
 
 .user-select-none {

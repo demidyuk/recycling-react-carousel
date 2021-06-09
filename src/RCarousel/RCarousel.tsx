@@ -104,6 +104,7 @@ export const RCarousel: React.FC<RCarouselProps> = ({
 }) => {
   const WIDTH = 'width';
   const HEIGHT = 'height';
+  const THRESHOLD_EPSILON_PX = 1;
   const x = !y;
   const containerRef = useRef<HTMLDivElement>(null);
   const { sizes, add, remove } = useOnResize([containerRef]);
@@ -243,7 +244,9 @@ export const RCarousel: React.FC<RCarouselProps> = ({
       const axis = +y;
 
       if (
-        (!down && Math.abs(movement[axis]) >= swipeThreshold) ||
+        (!down &&
+          Math.abs(movement[axis]) >=
+            (swipeThreshold as number) - THRESHOLD_EPSILON_PX) ||
         Math.abs(movement[axis]) / itemSizePx >= visibleItemsCount
       ) {
         cancel();
@@ -266,7 +269,7 @@ export const RCarousel: React.FC<RCarouselProps> = ({
         }));
       }
     },
-    { delay: 1000 }
+    { delay: true, axis: x ? 'x' : 'y' }
   );
 
   useEffect(
@@ -290,7 +293,7 @@ export const RCarousel: React.FC<RCarouselProps> = ({
       ref={containerRef}
       className={classNames([
         styles.container,
-        gestures && styles.touchActionNone,
+        gestures && (x ? styles.touchActionPanY : styles.touchActionPanX),
         !userSelect && styles.userSelectNone,
         styles.w100,
         styles.h100,
