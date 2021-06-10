@@ -1,3 +1,17 @@
+# [1.2.0](https://github.com/demidyuk/recycling-react-carousel/compare/v1.1.0...v1.2.0) (2021-06-10)
+
+
+### Bug Fixes
+
+* allow default browser scrolling when swiping on non-primary axis ([8e38d1a](https://github.com/demidyuk/recycling-react-carousel/commit/8e38d1a87b71604a59cd626fa6ba166680afa147))
+* prevent looping callbacks ([67de103](https://github.com/demidyuk/recycling-react-carousel/commit/67de103df4ce1adb4fa1aef4e894d62b86550949))
+
+
+### Features
+
+* add alignCenter and fitContent props ([5777c98](https://github.com/demidyuk/recycling-react-carousel/commit/5777c98da7eaabb0b103ea8acbe62e210c24dac5))
+* add autosize mode ([5c07950](https://github.com/demidyuk/recycling-react-carousel/commit/5c079501f2af0a5dfd68727fde3dda718faec042))
+
 # [1.1.0](https://github.com/demidyuk/recycling-react-carousel/compare/v1.0.2...v1.1.0) (2021-04-25)
 
 
