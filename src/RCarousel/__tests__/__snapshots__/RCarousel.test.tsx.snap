@@ -1,14 +1,98 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`check autosize prop 1`] = `
+Snapshot Diff:
+- First value
++ Second value
+
+@@ -1,29 +1,29 @@
+  <DocumentFragment>
+    <div
+      class="container touchActionPanY w100 h100"
+-     style="height: 40px;"
++     style="height: 60px;"
+    >
+      <div
+        class="actor h100"
+-       style="width: 50%; transform: translate3d(-200%, 0%, 0);"
++       style="width: 50%; transform: translate3d(200%, 0%, 0);"
+      >
+        <div
+          class="childWrapper w100 displayNone"
+        />
+      </div>
+      <div
+        class="actor h100"
+-       style="width: 50%; transform: translate3d(-100%, 0%, 0);"
++       style="width: 50%; transform: translate3d(300%, 0%, 0);"
+      >
+        <div
+          class="childWrapper w100 displayNone"
+        />
+      </div>
+      <div
+        class="actor h100"
+-       style="width: 50%; transform: translate3d(0%, 0%, 0);"
++       style="width: 50%; transform: translate3d(-200%, 0%, 0);"
+      >
+        <div
+          class="childWrapper w100"
+        >
+          <div
+@@ -33,11 +33,11 @@
+          </div>
+        </div>
+      </div>
+      <div
+        class="actor h100"
+-       style="width: 50%; transform: translate3d(100%, 0%, 0);"
++       style="width: 50%; transform: translate3d(-100%, 0%, 0);"
+      >
+        <div
+          class="childWrapper w100"
+        >
+          <div
+@@ -47,11 +47,11 @@
+          </div>
+        </div>
+      </div>
+      <div
+        class="actor h100"
+-       style="width: 50%; transform: translate3d(200%, 0%, 0);"
++       style="width: 50%; transform: translate3d(0%, 0%, 0);"
+      >
+        <div
+          class="childWrapper w100"
+        >
+          <div
+@@ -61,11 +61,11 @@
+          </div>
+        </div>
+      </div>
+      <div
+        class="actor h100"
+-       style="width: 50%; transform: translate3d(300%, 0%, 0);"
++       style="width: 50%; transform: translate3d(100%, 0%, 0);"
+      >
+        <div
+          class="childWrapper w100 displayNone"
+        />
+      </div>
+`;
+
 exports[`check carousel with only one slide 1`] = `
 <DocumentFragment>
   <div
-    class="container touchActionNone w100 h100"
+    class="container touchActionPanY w100 h100"
   >
     <div
       class="actor h100"
       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
-    />
+    >
+      <div
+        class="childWrapper w100 h100 displayNone"
+      />
+    </div>
     <div
       class="actor h100"
       style="width: 100%; transform: translate3d(0%, 0%, 0);"
@@ -26,7 +110,11 @@ exports[`check carousel with only one slide 1`] = `
     <div
       class="actor h100"
       style="width: 100%; transform: translate3d(100%, 0%, 0);"
-    />
+    >
+      <div
+        class="childWrapper w100 h100 displayNone"
+      />
+    </div>
   </div>
 </DocumentFragment>
 `;
@@ -34,20 +122,32 @@ exports[`check carousel with only one slide 1`] = `
 exports[`check carousel without slides 1`] = `
 <DocumentFragment>
   <div
-    class="container touchActionNone w100 h100"
+    class="container touchActionPanY w100 h100"
   >
     <div
       class="actor h100"
       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
-    />
+    >
+      <div
+        class="childWrapper w100 h100 displayNone"
+      />
+    </div>
     <div
       class="actor h100"
       style="width: 100%; transform: translate3d(0%, 0%, 0);"
-    />
+    >
+      <div
+        class="childWrapper w100 h100 displayNone"
+      />
+    </div>
     <div
       class="actor h100"
       style="width: 100%; transform: translate3d(100%, 0%, 0);"
-    />
+    >
+      <div
+        class="childWrapper w100 h100 displayNone"
+      />
+    </div>
   </div>
 </DocumentFragment>
 `;
@@ -55,8 +155,16 @@ exports[`check carousel without slides 1`] = `
 exports[`check defaultCursor prop 1`] = `
 <DocumentFragment>
   <div
-    class="container touchActionNone w100 h100"
+    class="container touchActionPanY w100 h100"
   >
+    <div
+      class="actor h100"
+      style="width: 100%; transform: translate3d(100%, 0%, 0);"
+    >
+      <div
+        class="childWrapper w100 h100 displayNone"
+      />
+    </div>
     <div
       class="actor h100"
       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
@@ -85,10 +193,6 @@ exports[`check defaultCursor prop 1`] = `
         </div>
       </div>
     </div>
-    <div
-      class="actor h100"
-      style="width: 100%; transform: translate3d(100%, 0%, 0);"
-    />
   </div>
 </DocumentFragment>
 `;
@@ -96,12 +200,16 @@ exports[`check defaultCursor prop 1`] = `
 exports[`check displayAtOnce prop resizing window width to 200px should display 1 slide(s) at once 1`] = `
 <DocumentFragment>
   <div
-    class="container touchActionNone w100 h100"
+    class="container touchActionPanY w100 h100"
   >
     <div
       class="actor h100"
       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
-    />
+    >
+      <div
+        class="childWrapper w100 h100 displayNone"
+      />
+    </div>
     <div
       class="actor h100"
       style="width: 100%; transform: translate3d(0%, 0%, 0);"
@@ -137,16 +245,24 @@ exports[`check displayAtOnce prop resizing window width to 200px should display 
 exports[`check displayAtOnce prop resizing window width to 500px should display 2 slide(s) at once 1`] = `
 <DocumentFragment>
   <div
-    class="container touchActionNone w100 h100"
+    class="container touchActionPanY w100 h100"
   >
     <div
       class="actor h100"
       style="width: 50%; transform: translate3d(-200%, 0%, 0);"
-    />
+    >
+      <div
+        class="childWrapper w100 h100 displayNone"
+      />
+    </div>
     <div
       class="actor h100"
       style="width: 50%; transform: translate3d(-100%, 0%, 0);"
-    />
+    >
+      <div
+        class="childWrapper w100 h100 displayNone"
+      />
+    </div>
     <div
       class="actor h100"
       style="width: 50%; transform: translate3d(0%, 0%, 0);"
@@ -192,7 +308,11 @@ exports[`check displayAtOnce prop resizing window width to 500px should display 
     <div
       class="actor h100"
       style="width: 50%; transform: translate3d(300%, 0%, 0);"
-    />
+    >
+      <div
+        class="childWrapper w100 h100 displayNone"
+      />
+    </div>
   </div>
 </DocumentFragment>
 `;
@@ -200,20 +320,32 @@ exports[`check displayAtOnce prop resizing window width to 500px should display 
 exports[`check displayAtOnce prop resizing window width to 1000px should display 3 slide(s) at once 1`] = `
 <DocumentFragment>
   <div
-    class="container touchActionNone w100 h100"
+    class="container touchActionPanY w100 h100"
   >
     <div
       class="actor h100"
       style="width: 33.33333333333333%; transform: translate3d(-300%, 0%, 0);"
-    />
+    >
+      <div
+        class="childWrapper w100 h100 displayNone"
+      />
+    </div>
     <div
       class="actor h100"
       style="width: 33.33333333333333%; transform: translate3d(-200%, 0%, 0);"
-    />
+    >
+      <div
+        class="childWrapper w100 h100 displayNone"
+      />
+    </div>
     <div
       class="actor h100"
       style="width: 33.33333333333333%; transform: translate3d(-100%, 0%, 0);"
-    />
+    >
+      <div
+        class="childWrapper w100 h100 displayNone"
+      />
+    </div>
     <div
       class="actor h100"
       style="width: 33.33333333333333%; transform: translate3d(0%, 0%, 0);"
@@ -259,15 +391,27 @@ exports[`check displayAtOnce prop resizing window width to 1000px should display
     <div
       class="actor h100"
       style="width: 33.33333333333333%; transform: translate3d(300%, 0%, 0);"
-    />
+    >
+      <div
+        class="childWrapper w100 h100 displayNone"
+      />
+    </div>
     <div
       class="actor h100"
       style="width: 33.33333333333333%; transform: translate3d(400%, 0%, 0);"
-    />
+    >
+      <div
+        class="childWrapper w100 h100 displayNone"
+      />
+    </div>
     <div
       class="actor h100"
       style="width: 33.33333333333333%; transform: translate3d(500%, 0%, 0);"
-    />
+    >
+      <div
+        class="childWrapper w100 h100 displayNone"
+      />
+    </div>
   </div>
 </DocumentFragment>
 `;
@@ -279,12 +423,12 @@ Snapshot Diff:
 
 @@ -2,11 +2,11 @@
     <div
-      class="container touchActionNone w100 h100"
+      class="container touchActionPanY w100 h100"
     >
       <div
         class="actor h100"
--       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
-+       style="width: 100%; transform: translate3d(100%, 0%, 0);"
+-       style="width: 100%; transform: translate3d(100%, 0%, 0);"
++       style="width: 100%; transform: translate3d(0%, 0%, 0);"
       >
         <div
           class="childWrapper w100 h100"
@@ -296,8 +440,8 @@ Snapshot Diff:
       </div>
       <div
         class="actor h100"
--       style="width: 100%; transform: translate3d(0%, 0%, 0);"
-+       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
+-       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
++       style="width: 100%; transform: translate3d(100%, 0%, 0);"
       >
         <div
           class="childWrapper w100 h100"
@@ -309,8 +453,8 @@ Snapshot Diff:
       </div>
       <div
         class="actor h100"
--       style="width: 100%; transform: translate3d(100%, 0%, 0);"
-+       style="width: 100%; transform: translate3d(0%, 0%, 0);"
+-       style="width: 100%; transform: translate3d(0%, 0%, 0);"
++       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
       >
         <div
           class="childWrapper w100 h100"
@@ -325,12 +469,12 @@ Snapshot Diff:
 
 @@ -2,11 +2,11 @@
     <div
-      class="container touchActionNone w100 h100"
+      class="container touchActionPanY w100 h100"
     >
       <div
         class="actor h100"
--       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
-+       style="width: 100%; transform: translate3d(100%, 0%, 0);"
+-       style="width: 100%; transform: translate3d(100%, 0%, 0);"
++       style="width: 100%; transform: translate3d(0%, 0%, 0);"
       >
         <div
           class="childWrapper w100 h100"
@@ -342,8 +486,8 @@ Snapshot Diff:
       </div>
       <div
         class="actor h100"
--       style="width: 100%; transform: translate3d(0%, 0%, 0);"
-+       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
+-       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
++       style="width: 100%; transform: translate3d(100%, 0%, 0);"
       >
         <div
           class="childWrapper w100 h100"
@@ -355,8 +499,8 @@ Snapshot Diff:
       </div>
       <div
         class="actor h100"
--       style="width: 100%; transform: translate3d(100%, 0%, 0);"
-+       style="width: 100%; transform: translate3d(0%, 0%, 0);"
+-       style="width: 100%; transform: translate3d(0%, 0%, 0);"
++       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
       >
         <div
           class="childWrapper w100 h100"
@@ -369,17 +513,18 @@ Snapshot Diff:
 - First value
 + Second value
 
-@@ -2,15 +2,25 @@
+@@ -2,19 +2,25 @@
     <div
-      class="container touchActionNone w100 h100"
+      class="container touchActionPanY w100 h100"
     >
       <div
         class="actor h100"
 -       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
--     />
 +       style="width: 100%; transform: translate3d(100%, 0%, 0);"
-+     >
-+       <div
+      >
+        <div
+-         class="childWrapper w100 h100 displayNone"
+-       />
 +         class="childWrapper w100 h100"
 +       >
 +         <div
@@ -388,7 +533,7 @@ Snapshot Diff:
 +           slide3
 +         </div>
 +       </div>
-+     </div>
+      </div>
       <div
         class="actor h100"
 -       style="width: 100%; transform: translate3d(0%, 0%, 0);"
@@ -398,7 +543,7 @@ Snapshot Diff:
           class="childWrapper w100 h100"
         >
           <div
-@@ -20,11 +30,11 @@
+@@ -24,11 +30,11 @@
           </div>
         </div>
       </div>
@@ -418,41 +563,16 @@ Snapshot Diff:
 - First value
 + Second value
 
-@@ -2,11 +2,11 @@
+@@ -2,25 +2,19 @@
     <div
-      class="container touchActionNone w100 h100"
+      class="container touchActionPanY w100 h100"
     >
       <div
         class="actor h100"
--       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
-+       style="width: 100%; transform: translate3d(0%, 0%, 0);"
-      >
-        <div
-          class="childWrapper w100 h100"
-        >
-          <div
-@@ -16,11 +16,11 @@
-          </div>
-        </div>
-      </div>
-      <div
-        class="actor h100"
--       style="width: 100%; transform: translate3d(0%, 0%, 0);"
-+       style="width: 100%; transform: translate3d(100%, 0%, 0);"
-      >
-        <div
-          class="childWrapper w100 h100"
-        >
-          <div
-@@ -30,19 +30,9 @@
-          </div>
-        </div>
-      </div>
-      <div
-        class="actor h100"
 -       style="width: 100%; transform: translate3d(100%, 0%, 0);"
--     >
--       <div
++       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
+      >
+        <div
 -         class="childWrapper w100 h100"
 -       >
 -         <div
@@ -461,11 +581,31 @@ Snapshot Diff:
 -           slide3
 -         </div>
 -       </div>
--     </div>
-+       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
-+     />
-    </div>
-  </DocumentFragment>
++         class="childWrapper w100 h100 displayNone"
++       />
+      </div>
+      <div
+        class="actor h100"
+-       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
++       style="width: 100%; transform: translate3d(0%, 0%, 0);"
+      >
+        <div
+          class="childWrapper w100 h100"
+        >
+          <div
+@@ -30,11 +24,11 @@
+          </div>
+        </div>
+      </div>
+      <div
+        class="actor h100"
+-       style="width: 100%; transform: translate3d(0%, 0%, 0);"
++       style="width: 100%; transform: translate3d(100%, 0%, 0);"
+      >
+        <div
+          class="childWrapper w100 h100"
+        >
+          <div
 `;
 
 exports[`check slides switching using cursor prop move from cursor 1 to cursor 2 1`] = `
@@ -473,43 +613,44 @@ Snapshot Diff:
 - First value
 + Second value
 
-@@ -2,25 +2,15 @@
+@@ -2,11 +2,11 @@
     <div
-      class="container touchActionNone w100 h100"
+      class="container touchActionPanY w100 h100"
     >
       <div
         class="actor h100"
+-       style="width: 100%; transform: translate3d(100%, 0%, 0);"
++       style="width: 100%; transform: translate3d(0%, 0%, 0);"
+      >
+        <div
+          class="childWrapper w100 h100"
+        >
+          <div
+@@ -16,25 +16,19 @@
+          </div>
+        </div>
+      </div>
+      <div
+        class="actor h100"
 -       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
--     >
--       <div
++       style="width: 100%; transform: translate3d(100%, 0%, 0);"
+      >
+        <div
 -         class="childWrapper w100 h100"
 -       >
 -         <div
 -           data-testid="slide1"
 -         >
 -           slide1
--         </div>
++         class="childWrapper w100 h100 displayNone"
++       />
+      </div>
 -       </div>
 -     </div>
-+       style="width: 100%; transform: translate3d(100%, 0%, 0);"
-+     />
       <div
         class="actor h100"
 -       style="width: 100%; transform: translate3d(0%, 0%, 0);"
 +       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
-      >
-        <div
-          class="childWrapper w100 h100"
-        >
-          <div
-@@ -30,11 +20,11 @@
-          </div>
-        </div>
-      </div>
-      <div
-        class="actor h100"
--       style="width: 100%; transform: translate3d(100%, 0%, 0);"
-+       style="width: 100%; transform: translate3d(0%, 0%, 0);"
       >
         <div
           class="childWrapper w100 h100"
@@ -522,10 +663,27 @@ Snapshot Diff:
 - First value
 + Second value
 
-@@ -2,11 +2,11 @@
+@@ -2,19 +2,25 @@
     <div
-      class="container touchActionNone w100 h100"
+      class="container touchActionPanY w100 h100"
     >
+      <div
+        class="actor h100"
+-       style="width: 100%; transform: translate3d(100%, 0%, 0);"
++       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
+      >
+        <div
+-         class="childWrapper w100 h100 displayNone"
+-       />
++         class="childWrapper w100 h100"
++       >
++         <div
++           data-testid="slide1"
++         >
++           slide1
++         </div>
++       </div>
+      </div>
       <div
         class="actor h100"
 -       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
@@ -535,7 +693,7 @@ Snapshot Diff:
           class="childWrapper w100 h100"
         >
           <div
-@@ -16,11 +16,11 @@
+@@ -24,11 +30,11 @@
           </div>
         </div>
       </div>
@@ -548,26 +706,4 @@ Snapshot Diff:
           class="childWrapper w100 h100"
         >
           <div
-@@ -30,9 +30,19 @@
-          </div>
-        </div>
-      </div>
-      <div
-        class="actor h100"
--       style="width: 100%; transform: translate3d(100%, 0%, 0);"
--     />
-+       style="width: 100%; transform: translate3d(-100%, 0%, 0);"
-+     >
-+       <div
-+         class="childWrapper w100 h100"
-+       >
-+         <div
-+           data-testid="slide1"
-+         >
-+           slide1
-+         </div>
-+       </div>
-+     </div>
-    </div>
-  </DocumentFragment>
 `;

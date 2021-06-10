@@ -1,13 +1,29 @@
 import React from 'react';
 import { buildTestCarousel, getTestSlides, swipe, render } from './tools';
+import { useOnResize as mockedUseOnResize } from '../hooks/useOnResize';
 
 import './tools/patchCreateEvent';
 
-jest.mock('../../hooks/useOnResize');
+jest.mock('../hooks/useOnResize');
 // jest.mock('../helpers/animTo');
+
+const useOnResize = mockedUseOnResize as jest.Mock;
+const getUseOnResizeMock = (sizes: any = []) => () => ({
+  sizes,
+  add: jest.fn(),
+  remove: jest.fn(),
+});
 
 const DEFAULT_WINDOW_WIDTH = 1000;
 const DEFAULT_WINDOW_HEIGHT = 200;
+
+const resize = (
+  width = DEFAULT_WINDOW_WIDTH,
+  height = DEFAULT_WINDOW_HEIGHT
+) => {
+  window.resizeTo(width, height);
+  useOnResize.mockImplementation(getUseOnResizeMock([{ width, height }]));
+};
 
 beforeAll(() => {
   window.resizeTo = function resizeTo(width, height) {
@@ -21,7 +37,7 @@ beforeAll(() => {
 });
 
 beforeEach(() => {
-  window.resizeTo(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
+  resize();
 });
 
 test('check defaultCursor prop', () => {
@@ -180,7 +196,7 @@ describe('check displayAtOnce prop', () => {
   ])(
     'resizing window width to %ipx should display %i slide(s) at once',
     (width, visibleSlidesCount) => {
-      window.resizeTo(width, DEFAULT_WINDOW_HEIGHT);
+      resize(width, DEFAULT_WINDOW_HEIGHT);
       const { asFragment } = render(<Component />);
       expect(asFragment()).toMatchSnapshot();
       expect(visibleActorsChangeHandler).toHaveBeenCalledWith(
@@ -203,4 +219,40 @@ test('check trimEnd prop', () => {
   expect(changeHandler).toHaveBeenCalledWith(0, 2, 3);
   rerender(<Component cursor={2} trimEnd={true} />);
   expect(changeHandler).toHaveBeenCalledWith(0, 0, 3);
+});
+
+test('check autosize prop', () => {
+  useOnResize.mockImplementation(
+    getUseOnResizeMock([
+      { width: 250, height: 0 },
+      { width: 250, height: 0 },
+      { width: 250, height: 20 },
+      { width: 250, height: 30 },
+      { width: 250, height: 10 },
+      { width: 250, height: 40 },
+    ])
+  );
+
+  const { Component } = buildTestCarousel({
+    baseProps: {
+      displayAtOnce: 2,
+      autosize: true,
+    },
+  });
+  const { rerender, asFragment } = render(<Component cursor={0} />);
+  const curFragment = asFragment();
+
+  useOnResize.mockImplementation(
+    getUseOnResizeMock([
+      { width: 250, height: 30 },
+      { width: 250, height: 40 },
+      { width: 250, height: 10 },
+      { width: 250, height: 50 },
+      { width: 250, height: 20 },
+      { width: 250, height: 60 },
+    ])
+  );
+
+  rerender(<Component cursor={2} />);
+  expect(curFragment).toMatchDiffSnapshot(asFragment());
 });

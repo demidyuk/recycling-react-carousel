@@ -14,6 +14,18 @@
   box-sizing: border-box;
 }
 
+.child-wrapper.align-center-x {
+  position: absolute;
+  left: 50%;
+  transform: translate3d(-50%, 0, 0);
+}
+
+.child-wrapper.align-center-y {
+  position: absolute;
+  top: 50%;
+  transform: translate3d(0, -50%, 0);
+}
+
 .w-100 {
   width: 100%;
 }
@@ -22,10 +34,18 @@
   height: 100%;
 }
 
-.touch-action-none {
-  touch-action: none;
+.touch-action-pan-x {
+  touch-action: pan-x;
+}
+
+.touch-action-pan-y {
+  touch-action: pan-y;
 }
 
 .user-select-none {
   user-select: none;
+}
+
+.display-none {
+  display: none !important;
 }

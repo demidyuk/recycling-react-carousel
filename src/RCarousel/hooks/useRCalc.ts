@@ -1,6 +1,6 @@
 import { useRef } from 'react';
-import { usePrevious } from '../hooks';
-import { clampCursor, calcActors, CalcResult } from './helpers';
+import { usePrevious } from './usePrevious';
+import { clampCursor, calcActors, CalcResult } from '../helpers';
 
 interface RCalcProps {
   cursor: number;

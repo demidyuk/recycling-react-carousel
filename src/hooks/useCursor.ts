@@ -1,12 +1,12 @@
 import { useCallback, useMemo, useReducer } from 'react';
 import { clampCursor, getLocalIndex } from '../RCarousel/helpers';
 
-interface CursorProps {
+export interface CursorProps {
   init?: number;
   step?: number;
 }
 
-interface GoToOptions {
+export interface GoToOptions {
   length?: number;
 }
 
