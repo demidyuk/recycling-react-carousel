@@ -1,10 +1,10 @@
 import React from 'react';
 import { buildTestCarousel, getTestSlides, swipe, render } from './tools';
-import { useOnResize as mockedUseOnResize } from '../../hooks/useOnResize';
+import { useOnResize as mockedUseOnResize } from '../hooks/useOnResize';
 
 import './tools/patchCreateEvent';
 
-jest.mock('../../hooks/useOnResize');
+jest.mock('../hooks/useOnResize');
 // jest.mock('../helpers/animTo');
 
 const useOnResize = mockedUseOnResize as jest.Mock;

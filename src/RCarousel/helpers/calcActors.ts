@@ -2,20 +2,7 @@ import clamp from 'lodash/clamp';
 import times from 'lodash/times';
 import { animTo } from './animTo';
 import { getSnapshot } from './getSnapshot';
-
-export type Actor = {
-  globalChildIndex: number;
-  anim: {
-    d: number;
-    immediate: boolean;
-  };
-};
-
-export type CalcResult = {
-  actors: Actor[];
-  actorsState: number;
-  cursor?: number;
-};
+import { CalcResult } from './types';
 
 export interface CalcActorsInput {
   cursor: number;

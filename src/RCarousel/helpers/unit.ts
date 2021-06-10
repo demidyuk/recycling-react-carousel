@@ -1,9 +1,4 @@
-export enum Unit {
-  PX = 'px',
-  PCT = '%',
-}
-
-export type UnitValue = number | string;
+import { Unit, UnitValue } from './types';
 
 const supportedUnits = [Unit.PX, Unit.PCT];
 

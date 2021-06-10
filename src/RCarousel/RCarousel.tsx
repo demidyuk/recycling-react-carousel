@@ -18,7 +18,8 @@ import {
   useWindowWidth,
   useForceUpdate,
   useShouldUpdate,
-} from '../hooks';
+  useRCalc,
+} from './hooks';
 import {
   clampCursor,
   classNames,
@@ -27,14 +28,11 @@ import {
   parsePx,
   getDisplayedSlidesCount,
   DisplayRule,
+  ChangeReason,
 } from './helpers';
-import { useRCalc } from './useRCalc';
 import SlideWrapper from './SlideWrapper';
 
-export enum ChangeReason {
-  USER_SWIPE = 'user_swipe',
-  SHIFT = 'shift',
-}
+export { DisplayRule, ChangeReason, UnitValue };
 
 export interface RCarouselProps extends React.HTMLAttributes<HTMLElement> {
   cursor?: number;
