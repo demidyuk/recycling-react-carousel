@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/demidyuk/recycling-react-carousel/compare/v1.2.0...v1.3.0) (2021-06-12)
+
+
+### Features
+
+* fix bugs and add slidesToSwipe options for display rules ([d9ad52c](https://github.com/demidyuk/recycling-react-carousel/commit/d9ad52ce14aba3394238f70b4e8001564c048d5f))
+
 # [1.2.0](https://github.com/demidyuk/recycling-react-carousel/compare/v1.1.0...v1.2.0) (2021-06-10)
 
 
