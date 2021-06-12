@@ -3,10 +3,10 @@ import { DisplayRule } from './types';
 export const getDisplayedSlidesCount = (
   displayAtOnce: number | undefined | DisplayRule[],
   windowWidth: number
-): number | undefined => {
+): DisplayRule | undefined => {
   const targetRule = { value: 1 };
   if (Array.isArray(displayAtOnce)) {
-    const { value } = displayAtOnce.reduce<DisplayRule>(
+    const displayRule = displayAtOnce.reduce<DisplayRule>(
       (targetRule, curRule) => {
         const breakpoint = curRule.breakpoint ?? -Infinity;
 
@@ -21,7 +21,7 @@ export const getDisplayedSlidesCount = (
       },
       targetRule
     );
-    return value;
+    return displayRule;
   }
-  return displayAtOnce;
+  if (displayAtOnce !== undefined) return { value: displayAtOnce };
 };

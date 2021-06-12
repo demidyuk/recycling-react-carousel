@@ -5,7 +5,6 @@
 
 .actor {
   position: absolute;
-  will-change: transform;
 }
 
 .child-wrapper {

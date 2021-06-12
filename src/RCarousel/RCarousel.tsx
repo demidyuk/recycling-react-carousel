@@ -105,6 +105,7 @@ export const RCarousel: React.FC<RCarouselProps> = ({
   const THRESHOLD_EPSILON_PX = 1;
   const x = !y;
   const containerRef = useRef<HTMLDivElement>(null);
+  const draggingRef = useRef<boolean>(false);
   const { sizes, add, remove } = useOnResize([containerRef]);
   const observer = useMemo(() => ({ add, remove }), [add, remove]);
 
@@ -139,7 +140,9 @@ export const RCarousel: React.FC<RCarouselProps> = ({
   containerPrimarySideLenPx &&
     invariant(maxItemSize > 0, `maxItemSize must be positive`);
 
-  displayAtOnce = getDisplayedSlidesCount(displayAtOnce, windowWidth);
+  const displayAtOnceRule = getDisplayedSlidesCount(displayAtOnce, windowWidth);
+  displayAtOnce = displayAtOnceRule && displayAtOnceRule.value;
+
   displayAtOnce !== undefined &&
     invariant(
       displayAtOnce > 0 && Number.isSafeInteger(displayAtOnce),
@@ -197,8 +200,11 @@ export const RCarousel: React.FC<RCarouselProps> = ({
     return { ...actors[i].anim, config: { ...springConfig } };
   };
   const [springs, set] = useSprings(actors.length, getSpringProps);
-  // @ts-ignore
-  set(getSpringProps);
+
+  if (!draggingRef.current) {
+    // @ts-ignore
+    set(getSpringProps);
+  }
 
   const fireChange = useCallback(
     (cursor: number, reason?: ChangeReason) => {
@@ -238,9 +244,10 @@ export const RCarousel: React.FC<RCarouselProps> = ({
       if (canceled) {
         return;
       }
+      draggingRef.current = true;
+
       const visibleItemsCount = actors.length / 3;
       const axis = +y;
-
       if (
         (!down &&
           Math.abs(movement[axis]) >=
@@ -248,10 +255,13 @@ export const RCarousel: React.FC<RCarouselProps> = ({
         Math.abs(movement[axis]) / itemSizePx >= visibleItemsCount
       ) {
         cancel();
+        draggingRef.current = false;
+
         if (
           onMoveRequested(
             -Math.sign(movement[axis]) *
-              Math.max(Math.round(Math.abs(movement[axis]) / itemSizePx), 1)
+              (displayAtOnceRule?.slidesToSwipe ||
+                Math.max(Math.round(Math.abs(movement[axis]) / itemSizePx), 1))
           ) === 0
         ) {
           // for example, when we have reached the border, we must get back current positions
@@ -325,6 +335,7 @@ export const RCarousel: React.FC<RCarouselProps> = ({
             ])}
             style={{
               [x ? WIDTH : HEIGHT]: itemSizePercents * 100 + '%',
+              willChange: !containerPrimarySideLenPx ? 'auto' : 'transform',
               transform: d.interpolate(
                 (d) => `translate3d(${`${+x * d * 100}%, ${+y * d * 100}%`}, 0)`
               ),
