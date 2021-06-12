@@ -1,5 +1,6 @@
 export interface DisplayRule {
   breakpoint?: number;
+  slidesToSwipe?: number;
   value: number;
 }
 
