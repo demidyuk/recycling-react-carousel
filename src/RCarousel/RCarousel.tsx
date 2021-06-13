@@ -138,15 +138,25 @@ export const RCarousel: React.FC<RCarouselProps> = ({
   );
 
   containerPrimarySideLenPx &&
-    invariant(maxItemSize > 0, `maxItemSize must be positive`);
+    invariant(
+      maxItemSize > 0,
+      `maxItemSize must be positive, got ${maxItemSize}`
+    );
 
   const displayAtOnceRule = getDisplayedSlidesCount(displayAtOnce, windowWidth);
   displayAtOnce = displayAtOnceRule && displayAtOnceRule.value;
+  const slidesToSwipe = displayAtOnceRule && displayAtOnceRule.slidesToSwipe;
 
   displayAtOnce !== undefined &&
     invariant(
       displayAtOnce > 0 && Number.isSafeInteger(displayAtOnce),
-      `displayAtOnce must be positive integer`
+      `displayAtOnce must be positive integer, got ${displayAtOnce}`
+    );
+
+  slidesToSwipe !== undefined &&
+    invariant(
+      slidesToSwipe > 0 && Number.isSafeInteger(slidesToSwipe),
+      `slidesToSwipe must be positive integer, got ${slidesToSwipe}`
     );
 
   const itemSizePxOriginal =
@@ -240,7 +250,7 @@ export const RCarousel: React.FC<RCarouselProps> = ({
   );
 
   const bind = useDrag(
-    ({ down, movement, cancel, canceled }) => {
+    ({ down, movement, cancel, direction, canceled }) => {
       if (canceled) {
         return;
       }
@@ -250,6 +260,7 @@ export const RCarousel: React.FC<RCarouselProps> = ({
       const axis = +y;
       if (
         (!down &&
+          Math.sign(movement[axis]) === Math.sign(direction[axis]) &&
           Math.abs(movement[axis]) >=
             (swipeThreshold as number) - THRESHOLD_EPSILON_PX) ||
         Math.abs(movement[axis]) / itemSizePx >= visibleItemsCount
@@ -260,7 +271,7 @@ export const RCarousel: React.FC<RCarouselProps> = ({
         if (
           onMoveRequested(
             -Math.sign(movement[axis]) *
-              (displayAtOnceRule?.slidesToSwipe ||
+              (slidesToSwipe ||
                 Math.max(Math.round(Math.abs(movement[axis]) / itemSizePx), 1))
           ) === 0
         ) {
@@ -269,6 +280,7 @@ export const RCarousel: React.FC<RCarouselProps> = ({
           set((i) => ({ ...getSpringProps(i), immediate: false }));
         }
       } else {
+        !down && (draggingRef.current = false);
         // @ts-ignore
         set((i) => ({
           ...getSpringProps(i),
