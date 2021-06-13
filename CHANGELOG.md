@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/demidyuk/recycling-react-carousel/compare/v1.3.0...v1.3.1) (2021-06-13)
+
+
+### Bug Fixes
+
+* prevent transition when change direction of swipes ([9b2051f](https://github.com/demidyuk/recycling-react-carousel/commit/9b2051f5f75edd414698b7a85f65a82fc8fc3024))
+
 # [1.3.0](https://github.com/demidyuk/recycling-react-carousel/compare/v1.2.0...v1.3.0) (2021-06-12)
 
 
