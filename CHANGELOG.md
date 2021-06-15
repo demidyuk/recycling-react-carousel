@@ -1,3 +1,10 @@
+## [1.3.2](https://github.com/demidyuk/recycling-react-carousel/compare/v1.3.1...v1.3.2) (2021-06-15)
+
+
+### Bug Fixes
+
+* add stories and additional condition for swipes ([9b47784](https://github.com/demidyuk/recycling-react-carousel/commit/9b477844b459aafe6ff1324759684005185d4c11))
+
 ## [1.3.1](https://github.com/demidyuk/recycling-react-carousel/compare/v1.3.0...v1.3.1) (2021-06-13)
 
 
