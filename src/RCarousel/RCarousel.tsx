@@ -260,7 +260,8 @@ export const RCarousel: React.FC<RCarouselProps> = ({
       const axis = +y;
       if (
         (!down &&
-          Math.sign(movement[axis]) === Math.sign(direction[axis]) &&
+          (Math.sign(movement[axis]) === Math.sign(direction[axis]) ||
+            direction[axis] === 0) &&
           Math.abs(movement[axis]) >=
             (swipeThreshold as number) - THRESHOLD_EPSILON_PX) ||
         Math.abs(movement[axis]) / itemSizePx >= visibleItemsCount
