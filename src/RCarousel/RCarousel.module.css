@@ -3,6 +3,12 @@
   overflow: hidden;
 }
 
+.freeViewport {
+  /* Clipping must never create a native scroll offset when focus moves. */
+  overflow: clip;
+  display: flow-root;
+}
+
 .actor {
   position: absolute;
 }
@@ -41,10 +47,28 @@
   touch-action: pan-y;
 }
 
-.user-select-none {
-  user-select: none;
-}
-
 .display-none {
   display: none !important;
+}
+
+.presentation {
+  display: flex;
+}
+
+.presentation-horizontal {
+  flex-direction: column;
+}
+
+.presentation-vertical {
+  flex-direction: row;
+}
+
+.child-wrapper.align-end-y {
+  position: absolute;
+  bottom: 0;
+}
+
+.child-wrapper.align-end-x {
+  position: absolute;
+  right: 0;
 }

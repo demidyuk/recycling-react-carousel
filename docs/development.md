@@ -1,0 +1,110 @@
+# Development
+
+[README](../README.md) · [API reference](api.md) · [Repository instructions](../AGENTS.md)
+
+## Setup
+
+Use Node 24 and npm:
+
+```sh
+nvm use
+npm ci
+```
+
+The published package supports Node >=22.18.0 and React/React DOM 18 and 19.
+Repository tooling uses Node 24.
+
+## Validation
+
+Run these checks in order; builds and reports can interrupt browser tests:
+
+```sh
+npm run check
+npm run test:browser
+npm run test:package:browser
+npm run build-storybook
+```
+
+`check` runs formatting, linting, TypeScript, unit tests with coverage, the library
+build, size limits, package metadata checks, and packed ESM/CommonJS consumers on
+React 18.0 and 19. It also checks accepted and rejected TypeScript usage against
+the built declarations.
+
+`size` measures minified Brotli output with React and React DOM excluded. Separate
+budgets cover the full ESM build (15.5 kB), CommonJS (16 kB), and a `useCarousel`
+import (2.5 kB). Hook-only consumers must discard the renderer and motion engine
+while retaining automatic CSS injection. The packed browser checks verify this
+for React 18 and 19.
+
+Use `npm test -- <file>` for focused unit tests, or `npm run test:watch` while
+working. Shared test setup unmounts components before restoring spies, browser
+globals, and timers. Layout stubs and manual animation clocks live in
+`test-config`; tests of the real resize observer retain their own observer setup.
+
+`test:browser` uses Chromium, focused WebKit coverage, and mobile Chromium touch
+checks. Gesture, animation, resize, and boundary changes need browser validation.
+Wait for state or geometry to determine readiness. Gesture pacing and pauses
+should simulate user input.
+Physical-device checks remain useful for gesture changes.
+
+`test:package:browser` additionally verifies injected CSS, SSR, hydration,
+controller navigation, and local/global positions in Chromium and WebKit for both
+React versions. Build first when running package checks independently:
+
+```sh
+npm run build
+npm run test:package
+npm run test:package:browser
+```
+
+Package tests install the tarball into temporary consumer projects and remove
+them afterward. Fixtures under `scripts/fixtures/package` are compiled there,
+without the repository's source alias. Intentional type errors verify that
+invalid API usage is rejected, including removed compatibility APIs.
+
+## Storybook profiles
+
+```sh
+npm run storybook
+npm run storybook:test
+npm run build-storybook
+```
+
+The public Storybook contains focused presets with the full carousel configuration
+Controls available in every story and copyable starting examples in Docs.
+Changing axis or cross-axis sizing also updates demo dimensions and navigation
+arrows. Initial-position Controls remount the demo; controlled positions update
+the existing carousel. Local and absolute position props remain mutually exclusive.
+Keep `rcarousel--...` story IDs stable when changing display names.
+
+Use the width slider to try container breakpoints. Expansion state lives in the
+parent, keyed by item ID. The large collection example renders a small pool from
+1,000 items and displays its slot count. Infinite loading shows three slides by
+default with a loading card at the end of its items. The next batch replaces that
+card in place, and a new loading card follows the batch. Keeping this end card
+mounted avoids changing geometry when a request starts. Loading starts when the
+end card enters the viewport or through Load more items. It allows one request at
+a time, cancels timers on unmount, and appends results during dragging or animation
+without waiting for release or moving the current view.
+The examples use system fonts and CSS, with no external media.
+See the [usage guide](guide.md#controlled-navigation) for controlled position props.
+
+Playwright starts the test profile on port 6017. That profile includes public
+examples and regression fixtures. Numbered-card fixtures live in
+`e2e/fixtures/technical` and appear in the test-only Feature harness stories.
+Geometry and motion tests use these fixtures so presentation changes do not
+alter their measurements. The dev watcher excludes generated outputs.
+Publish only `storybook-static`, never internal or test profile builds.
+
+## Editing conventions
+
+- Keep relative source imports suffixed with `.js` for emitted ESM and CommonJS
+  declarations.
+- Use concise JSDoc for non-obvious public behavior, constraints, and units.
+  Internal comments explain why a mechanism exists; avoid repeating types or names.
+- Preserve browserless imports, StrictMode-safe effects, automatic CSS injection,
+  the public exports, and the existing position semantics.
+- Add regression coverage for demonstrated bugs. Keep distinct browser geometry
+  and numeric motion checks; do not regenerate reference data to make a failure pass.
+- Edit source files rather than generated build, coverage, or Playwright output.
+  Release history and third-party license text retain their established formats.

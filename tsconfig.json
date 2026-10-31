@@ -1,12 +1,40 @@
 {
-  "extends": "./tsconfig.build.json",
-  "include": ["src", "types", "stories", "test-config"],
-  "exclude": [],
   "compilerOptions": {
-    "rootDir": "./",
-    "baseUrl": "./",
+    "target": "ES2018",
+    "useDefineForClassFields": true,
+    "lib": ["DOM", "DOM.Iterable", "ES2020"],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
     "paths": {
-      "recycling-react-carousel": ["src"]
-    }
-  }
+      "recycling-react-carousel": ["./src/index.ts"]
+    },
+    "types": ["node", "vitest/globals"]
+  },
+  "include": [
+    "src",
+    "types",
+    "stories",
+    "test-config",
+    "e2e",
+    ".storybook",
+    "*.config.ts"
+  ],
+  "exclude": [
+    "dist",
+    "storybook-static",
+    "storybook-internal-static",
+    "storybook-test-static",
+    "coverage",
+    "node_modules"
+  ]
 }

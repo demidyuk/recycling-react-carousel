@@ -1,16 +1,25 @@
-import { useEffect } from 'react';
-import debounce from 'lodash/debounce';
-import { useForceUpdate } from './useForceUpdate';
+import { useSyncExternalStore } from 'react';
+
+const getServerSnapshot = () => 0;
+const getSnapshot = () => window.innerWidth;
+
+const subscribe = (onStoreChange: () => void) => {
+  let timeout: number | undefined;
+  const resizeListener = () => {
+    window.clearTimeout(timeout);
+    timeout = window.setTimeout(() => {
+      timeout = undefined;
+      onStoreChange();
+    }, 60);
+  };
+  window.addEventListener('resize', resizeListener);
+
+  return () => {
+    window.clearTimeout(timeout);
+    window.removeEventListener('resize', resizeListener);
+  };
+};
 
 export function useWindowWidth() {
-  const forceUpdate = useForceUpdate();
-
-  useEffect(() => {
-    const resizeListener = debounce(() => forceUpdate(), 60);
-    window.addEventListener('resize', resizeListener);
-
-    return () => window.removeEventListener('resize', resizeListener);
-  }, [forceUpdate]);
-
-  return window.innerWidth;
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
