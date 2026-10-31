@@ -134,7 +134,9 @@ jobs:
 
   release:
     name: Release
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: >-
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/alpha')
     needs: [validate, react-18, browser]
     runs-on: ubuntu-latest
     permissions:

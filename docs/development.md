@@ -96,6 +96,16 @@ Geometry and motion tests use these fixtures so presentation changes do not
 alter their measurements. The dev watcher excludes generated outputs.
 Publish only `storybook-static`, never internal or test profile builds.
 
+## Releases
+
+After validation passes, pushes to `master` publish stable releases and pushes to
+`alpha` publish prereleases on npm's `alpha` dist-tag. For example, a breaking
+change after 1.3.2 produces `2.0.0-alpha.1` on `alpha`. Pull requests run checks
+without publishing. Storybook deployment runs on pushes to `master`.
+
+Keep the release job's branch condition in `.github/workflows/main.yml` aligned
+with the branches configured in `.releaserc.json`.
+
 ## Editing conventions
 
 - Keep relative source imports suffixed with `.js` for emitted ESM and CommonJS
