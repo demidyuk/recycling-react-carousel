@@ -1,4 +1,2 @@
-export * from './testCarousel';
-export * from './render';
-export * from './springConfig';
-export * from './swipe';
+export * from './testCarousel.js';
+export * from './swipe.js';

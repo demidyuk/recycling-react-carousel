@@ -1,11 +1,7 @@
-export function classNames(classNames: any[] = []) {
-  classNames = Array.from(new Set(classNames).values());
-  return classNames
-    .reduce<string[]>((acc, cn) => {
-      if (cn && (cn = cn.toString().trim())) {
-        acc.push(cn);
-      }
-      return acc;
-    }, [])
+export function classNames(values: Array<string | false | null | undefined>) {
+  return [...new Set(values)]
+    .filter((value): value is string => typeof value === 'string')
+    .map((value) => value.trim())
+    .filter(Boolean)
     .join(' ');
 }
