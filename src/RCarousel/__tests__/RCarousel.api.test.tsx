@@ -742,7 +742,7 @@ test('fractional trimming preserves integer navigation, terminal geometry, and p
 });
 
 test.each(['horizontal', 'vertical'] as const)(
-  '%s centered endpoints keep partial previews inert',
+  '%s centered endpoints allow visible previews and keep buffers inert',
   (axis) => {
     render(
       <Example
@@ -760,12 +760,15 @@ test.each(['horizontal', 'vertical'] as const)(
     const root = screen.getByTestId('carousel');
     expect(
       root.querySelectorAll('[data-carousel-slide]:not([inert])')
-    ).toHaveLength(1);
+    ).toHaveLength(2);
     expect(
       screen.getByTestId('slide8').closest('[data-carousel-slide]')
     ).not.toHaveAttribute('inert');
     expect(
       screen.getByTestId('slide7').closest('[data-carousel-slide]')
+    ).not.toHaveAttribute('inert');
+    expect(
+      screen.getByTestId('slide6').closest('[data-carousel-slide]')
     ).toHaveAttribute('inert');
   }
 );

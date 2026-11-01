@@ -103,23 +103,12 @@ const CarouselActor = ({
   gap: number;
   anchor: number;
   measurable: boolean;
-  interactive: boolean;
+  interactive: (offset: number) => boolean;
   focusContainer: () => void;
   className: string;
   children: React.ReactNode;
 }) => {
   const actorRef = useRef<HTMLDivElement>(null);
-  useIsomorphicLayoutEffect(() => {
-    const actor = actorRef.current;
-    if (!actor) return;
-    if (!interactive && actor.contains(actor.ownerDocument.activeElement)) {
-      focusContainer();
-    }
-    // Set the native attribute directly: React 18 does not accept boolean
-    // inert props, while React 19 does. Both must get the same browser behavior.
-    actor.toggleAttribute('inert', !interactive);
-  }, [focusContainer, interactive]);
-
   const transform = (offset: number) => {
     const position = slot.basePosition + offset;
     return `translate3d(${+x * position * 100}%, ${+y * position * 100}%, 0)`;
@@ -127,11 +116,29 @@ const CarouselActor = ({
   useIsomorphicLayoutEffect(() => {
     const actor = actorRef.current;
     if (!actor) return;
+    let active = true;
+    let wasInteractive: boolean | undefined;
     const update = () => {
-      actor.style.transform = transform(animatedOffset.get());
+      const offset = animatedOffset.get();
+      actor.style.transform = transform(offset);
+      const next = interactive(offset);
+      if (next === wasInteractive) return;
+      wasInteractive = next;
+      if (!next && actor.contains(actor.ownerDocument.activeElement)) {
+        focusContainer();
+        if (!active) return;
+      }
+      // React 18 does not accept boolean inert props.
+      actor.toggleAttribute('inert', !next);
+      if (next) actor.removeAttribute('aria-hidden');
+      else actor.setAttribute('aria-hidden', 'true');
     };
     update();
-    return animatedOffset.subscribe(update);
+    const unsubscribe = animatedOffset.subscribe(update);
+    return () => {
+      active = false;
+      unsubscribe();
+    };
   });
 
   return (
@@ -141,7 +148,7 @@ const CarouselActor = ({
       aria-roledescription="slide"
       aria-label={label}
       data-carousel-slide=""
-      aria-hidden={!interactive || undefined}
+      aria-hidden={!interactive(animatedOffset.get()) || undefined}
       className={className}
       style={{
         [x ? 'width' : 'height']: itemSize,
@@ -186,7 +193,7 @@ interface ViewportProps extends Omit<
   motionController?: CarouselController;
   wheel: boolean;
   navigationRequest: number;
-  onFocusAlign: () => void;
+  onFocusAlign: (absoluteIndex: number) => void;
   axis?: 'horizontal' | 'vertical';
   mode?: 'finite' | 'loop' | 'forward-loop';
   swipeThreshold: CarouselLength;
@@ -259,6 +266,14 @@ export const CarouselViewport = /*#__PURE__*/ forwardRef(
     useImperativeHandle(forwardedRef, () => containerRef.current!, []);
     const focusedSlideElementRef = useRef<HTMLElement | null>(null);
     const pendingFocusRef = useRef<HTMLElement | null>(null);
+    const pointerFocusRef = useRef(false);
+    const markPointerFocus = () => {
+      pointerFocusRef.current = true;
+      pendingFocusRef.current = null;
+    };
+    const clearPointerFocus = () => {
+      pointerFocusRef.current = false;
+    };
     const focusContainer = useCallback(() => {
       containerRef.current?.focus({ preventScroll: true });
       focusedSlideElementRef.current = null;
@@ -587,6 +602,14 @@ export const CarouselViewport = /*#__PURE__*/ forwardRef(
     const inputProps = mergeEventHandlers(
       {
         ...bind,
+        onPointerDownCapture: markPointerFocus,
+        onPointerUpCapture: clearPointerFocus,
+        onPointerCancelCapture: clearPointerFocus,
+        onPointerLeave: clearPointerFocus,
+        // Touch focus can follow pointerup through compatibility mouse events.
+        onMouseDownCapture: markPointerFocus,
+        onMouseUpCapture: clearPointerFocus,
+        onKeyDownCapture: clearPointerFocus,
         onWheel: (event) => {
           onWheel?.(event);
           if (event.defaultPrevented) cancelCarouselWheel(event.nativeEvent);
@@ -596,37 +619,34 @@ export const CarouselViewport = /*#__PURE__*/ forwardRef(
           if (canDrag && target.closest?.('img, a')) event.preventDefault();
         },
         onFocusCapture: (event) => {
+          const pointerFocus = pointerFocusRef.current;
+          clearPointerFocus();
           focusedSlideElementRef.current =
             event.target === event.currentTarget
               ? null
               : (event.target as HTMLElement);
           const container = event.currentTarget;
           const target = event.target as HTMLElement;
-          if (
-            dragMode === 'free' &&
-            !aligned &&
-            !isMoving &&
-            target !== container
-          ) {
+          if (target !== container) pendingFocusRef.current = null;
+          if (!pointerFocus && target !== container) {
             const index = Array.from(container.children).findIndex((actor) =>
               actor.contains(target)
             );
             const viewport = container.getBoundingClientRect();
             const box = target.getBoundingClientRect();
-            if (
-              slots[index]?.globalSlideIndex === resolvedCursor &&
-              (box.left + container.scrollLeft < viewport.left - 0.5 ||
-                box.right + container.scrollLeft > viewport.right + 0.5 ||
-                box.top + container.scrollTop < viewport.top - 0.5 ||
-                box.bottom + container.scrollTop > viewport.bottom + 0.5)
-            ) {
+            const clipped = x
+              ? box.left + container.scrollLeft < viewport.left - 0.5 ||
+                box.right + container.scrollLeft > viewport.right + 0.5
+              : box.top + container.scrollTop < viewport.top - 0.5 ||
+                box.bottom + container.scrollTop > viewport.bottom + 0.5;
+            if (slots[index] && clipped) {
               pendingFocusRef.current = target;
-              onFocusAlign();
+              onFocusAlign(slots[index].globalSlideIndex);
             }
           }
         },
         onScroll: (event) => {
-          if (dragMode !== 'snap' && event.target === event.currentTarget) {
+          if (event.target === event.currentTarget) {
             event.currentTarget.scrollLeft = 0;
             event.currentTarget.scrollTop = 0;
           }
@@ -653,7 +673,6 @@ export const CarouselViewport = /*#__PURE__*/ forwardRef(
         ref={containerRef}
         className={classNames([
           styles.container,
-          dragMode !== 'snap' && styles.freeViewport,
           canDrag && (x ? styles.touchActionPanY : styles.touchActionPanX),
           styles.w100,
           !contentSized && styles.h100,
@@ -694,20 +713,16 @@ export const CarouselViewport = /*#__PURE__*/ forwardRef(
               gap={gap}
               anchor={anchor}
               measurable={Boolean(containerPrimarySideLenPx)}
-              interactive={
-                ready &&
-                !isMoving &&
-                slot.renderable &&
-                ((dragMode === 'free' &&
-                  slot.globalSlideIndex === resolvedCursor) ||
-                  (anchor +
-                    (slot.basePosition + animatedOffset.get()) * itemStepPx >=
-                    -0.5 &&
-                    anchor +
-                      (slot.basePosition + animatedOffset.get()) * itemStepPx +
-                      itemSizePx <=
-                      containerPrimarySideLenPx + 0.5))
-              }
+              interactive={(offset) => {
+                const start =
+                  anchor + (slot.basePosition + offset) * itemStepPx;
+                return (
+                  ready &&
+                  slot.renderable &&
+                  start < containerPrimarySideLenPx - 0.5 &&
+                  start + itemSizePx > 0.5
+                );
+              }}
               label={
                 slot.renderable
                   ? getSlideLabel?.(

@@ -1,6 +1,9 @@
 import { useMemo, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import RCarousel, { useCarousel } from 'recycling-react-carousel';
+import RCarousel, {
+  useCarousel,
+  type RCarouselProps,
+} from 'recycling-react-carousel';
 
 const imageSource =
   'data:image/svg+xml,' +
@@ -12,15 +15,20 @@ function InteractiveExample({
   kind = 'button',
   initialCursor = 0,
   contentSizing = false,
+  axis = 'horizontal',
+  animation = { type: 'duration', duration: 350 },
+  dragMode = 'snap',
 }: {
   kind?: 'button' | 'image' | 'link';
   initialCursor?: number;
   contentSizing?: boolean;
-}) {
+} & Pick<RCarouselProps, 'axis' | 'animation' | 'dragMode'>) {
+  const carousel = useCarousel();
   const [cursor, setCursor] = useState(initialCursor);
   const [visible, setVisible] = useState(1);
   const [dragEnabled, setDragEnabled] = useState(true);
   const [clicks, setClicks] = useState(0);
+  const [rootClicks, setRootClicks] = useState(0);
   const [pointerDowns, setPointerDowns] = useState(0);
   const [width, setWidth] = useState(300);
   const slides = useMemo(
@@ -68,15 +76,19 @@ function InteractiveExample({
     <div style={{ padding: 24 }}>
       <button data-testid="before">Before</button>
       <RCarousel
+        controller={carousel}
+        axis={axis}
+        dragMode={dragMode}
         aria-label="Example products"
         data-testid="interaction-carousel"
         absoluteIndex={cursor}
         onAbsoluteIndexChange={setCursor}
         onPointerDown={() => setPointerDowns((count) => count + 1)}
+        onClick={() => setRootClicks((count) => count + 1)}
         slidesPerView={visible}
         drag={dragEnabled}
         crossAxisSize={contentSizing ? 'content' : 'container'}
-        animation={{ type: 'duration' as const, duration: 350 }}
+        animation={animation}
         style={{
           width,
           height: contentSizing ? undefined : 180,
@@ -88,6 +100,10 @@ function InteractiveExample({
       <button data-testid="after">After</button>
       <output data-testid="interaction-cursor">{cursor}</output>
       <output data-testid="interaction-clicks">{clicks}</output>
+      <output data-testid="interaction-root-clicks">{rootClicks}</output>
+      <output data-testid="interaction-moving">
+        {String(carousel.isAnimating)}
+      </output>
       <output data-testid="interaction-pointer-downs">{pointerDowns}</output>
       <button
         data-testid="interaction-next"

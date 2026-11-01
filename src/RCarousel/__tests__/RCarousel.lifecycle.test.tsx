@@ -219,7 +219,7 @@ test('a viewport change during drag does not turn the next move into a relocatio
 
   expect(requestFrame).toHaveBeenCalledOnce();
   expect(actor('slide2').style.transform).toBe('translate3d(100%, 0%, 0)');
-  expect(actor('slide2')).toHaveAttribute('inert');
+  expect(actor('slide2')).not.toHaveAttribute('inert');
 });
 
 test.each([

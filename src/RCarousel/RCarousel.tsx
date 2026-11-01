@@ -536,6 +536,10 @@ export const RCarousel = /*#__PURE__*/ forwardRef(function RCarousel(
     },
     [attempt, emitChange]
   );
+  const alignFocus = useCallback(
+    (position: number) => dispatch({ type: 'goToAbsolute', value: position }),
+    [dispatch]
+  );
 
   useIsomorphicLayoutEffect(() => {
     if (controller)
@@ -613,7 +617,7 @@ export const RCarousel = /*#__PURE__*/ forwardRef(function RCarousel(
       motionController={controller}
       wheel={wheel}
       navigationRequest={navigationRequest}
-      onFocusAlign={requestAlignment}
+      onFocusAlign={alignFocus}
       crossAxisSize={crossAxisSize}
       slideAlign={slideAlign}
       slideClassName={slideClassName}

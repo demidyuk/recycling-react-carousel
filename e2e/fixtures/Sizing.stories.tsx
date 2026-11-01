@@ -64,6 +64,7 @@ function SizingExample({
         </label>
       </nav>
       <output data-testid="cursor">{carousel.absoluteIndex}</output>
+      <output data-testid="moving">{String(carousel.isAnimating)}</output>
       <RCarousel
         controller={carousel}
         defaultIndex={initialIndex}

@@ -191,7 +191,7 @@ test.each(['horizontal', 'vertical'] as const)(
       });
       expect(
         container.querySelectorAll('[data-carousel-slide]:not([inert])')
-      ).toHaveLength(1);
+      ).toHaveLength(2);
     } finally {
       act(() => root?.unmount());
       container.remove();

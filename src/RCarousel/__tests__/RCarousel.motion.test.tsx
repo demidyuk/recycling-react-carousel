@@ -87,6 +87,44 @@ test('frames bypass React rendering and unsubscribe stops delivery', () => {
   expect(receive).toHaveBeenCalledTimes(count);
 });
 
+test.each(['horizontal', 'vertical'] as const)(
+  '%s motion keeps visible slides active and retains focus until the slide leaves',
+  (axis) => {
+    vi.spyOn(motionEnvironment, 'reducedMotion').mockReturnValue(false);
+    const clock = mockMotionClock();
+    render(
+      <Example axis={axis} animation={{ type: 'duration', duration: 1000 }}>
+        {Array.from({ length: 6 }, (_, index) => (
+          <button key={index}>Open {index}</button>
+        ))}
+      </Example>
+    );
+    const outgoing = screen.getByText('Open 0');
+    const incoming = screen.getByText('Open 1');
+    const outgoingActor = outgoing.closest('[data-carousel-slide]')!;
+    const incomingActor = incoming.closest('[data-carousel-slide]')!;
+    act(() => outgoing.focus());
+    act(() => controller.next());
+    expect(outgoing).toHaveFocus();
+    expect(outgoingActor).not.toHaveAttribute('inert');
+    expect(incomingActor).toHaveAttribute('inert');
+    clock.advanceTo(0.1);
+    const before = renders;
+    clock.advanceTo(10);
+    expect(renders).toBe(before);
+    expect(incomingActor).not.toHaveAttribute('inert');
+    expect(incomingActor).not.toHaveAttribute('aria-hidden');
+    for (let time = 60; time <= 510; time += 50) clock.advanceTo(time);
+    expect(outgoing).toHaveFocus();
+    expect(outgoingActor).not.toHaveAttribute('inert');
+    for (let time = 560; time <= 1060; time += 50) clock.advanceTo(time);
+    expect(incomingActor).not.toHaveAttribute('inert');
+    expect(outgoingActor).toHaveAttribute('inert');
+    expect(outgoingActor).toHaveAttribute('aria-hidden', 'true');
+    expect(incoming.closest('[aria-roledescription="carousel"]')).toHaveFocus();
+  }
+);
+
 test('subscriptions can be registered before attachment and survive StrictMode detach/rebind', () => {
   const { rerender, unmount } = render(
     <StrictMode>

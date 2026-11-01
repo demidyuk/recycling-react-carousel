@@ -110,13 +110,21 @@ test('content sizing ignores hidden tall cards and fits visible content', async 
   page,
 }) => {
   const carousel = await open(page, 'content-sizing');
+  const expectSelected = (index: number) =>
+    expect
+      .poll(() =>
+        carousel
+          .locator(':scope > div:not([inert]) [data-item-index]')
+          .evaluateAll((cards) =>
+            cards.map((card) => card.getAttribute('data-item-index'))
+          )
+      )
+      .toEqual([String(index)]);
   await expect(carousel.locator(':scope > div:not([inert])')).toHaveCount(1);
   const initialHeight = (await carousel.boundingBox())!.height;
   await selectSlide(page, 2);
   await expect(page.getByTestId('slide-number')).toHaveText('3');
-  await expect(
-    carousel.locator(':scope > div:not([inert]) [data-item-index]')
-  ).toHaveAttribute('data-item-index', '2');
+  await expectSelected(2);
   await expect(carousel.locator('[data-item-index="3"]')).toHaveCount(1);
   await expect
     .poll(async () =>
@@ -124,16 +132,12 @@ test('content sizing ignores hidden tall cards and fits visible content', async 
     )
     .toBeLessThan(2);
   await selectSlide(page, 3);
-  await expect(
-    carousel.locator(':scope > div:not([inert]) [data-item-index]')
-  ).toHaveAttribute('data-item-index', '3');
+  await expectSelected(3);
   await expect
     .poll(async () => (await carousel.boundingBox())!.height)
     .toBeGreaterThan(initialHeight + 100);
   await selectSlide(page, 5);
-  await expect(
-    carousel.locator(':scope > div:not([inert]) [data-item-index]')
-  ).toHaveAttribute('data-item-index', '5');
+  await expectSelected(5);
   await expect(carousel.locator('[data-item-index="4"]')).toHaveCount(1);
   await expect
     .poll(async () =>

@@ -79,7 +79,41 @@ for (const reduced of [false, true]) {
   }
 }
 
-test('focus alignment does not steal focus after the user tabs out', async ({
+for (const axis of ['horizontal', 'vertical'] as const) {
+  for (const dragMode of ['snap', 'free', 'free-snap']) {
+    test(`${axis} ${dragMode}: keyboard focus reveals a control in a partial preview`, async ({
+      page,
+    }) => {
+      const root = await open(
+        page,
+        `focusEdges:true;axis:${axis};dragMode:${dragMode};snapAlign:center;slidesPerView:1.5`
+      );
+      const field = root.getByRole('spinbutton', {
+        name: 'Quantity 1',
+        exact: true,
+      });
+      await field.focus();
+      await expect(page.getByTestId('cursor')).toHaveText('1');
+      await stopped(page);
+      await expect(field).toBeFocused();
+      const viewport = (await root.boundingBox())!;
+      const box = (await field.boundingBox())!;
+      expect(box.x).toBeGreaterThanOrEqual(viewport.x - 0.5);
+      expect(box.y).toBeGreaterThanOrEqual(viewport.y - 0.5);
+      expect(box.x + box.width).toBeLessThanOrEqual(
+        viewport.x + viewport.width + 0.5
+      );
+      expect(box.y + box.height).toBeLessThanOrEqual(
+        viewport.y + viewport.height + 0.5
+      );
+      expect(
+        await root.evaluate((node) => [node.scrollLeft, node.scrollTop])
+      ).toEqual([0, 0]);
+    });
+  }
+}
+
+test('focus alignment does not steal focus after it leaves the carousel', async ({
   page,
 }) => {
   await page.clock.install({ time: new Date('2026-10-31T00:00:00Z') });
@@ -92,12 +126,14 @@ test('focus alignment does not steal focus after the user tabs out', async ({
   await root.getByRole('button', { name: 'Open item 1', exact: true }).focus();
   await page.keyboard.press('Tab');
   await expect(page.getByTestId('moving')).toHaveText('true');
-  await expect(root).toBeFocused();
-  await page.keyboard.press('Tab');
+  await expect(
+    root.getByRole('spinbutton', { name: 'Quantity 1', exact: true })
+  ).toBeFocused();
   const after = page.getByRole('textbox', {
     name: 'After carousel',
     exact: true,
   });
+  await after.focus();
   await expect(after).toBeFocused();
   await page.clock.runFor(500);
   await stopped(page);

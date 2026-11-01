@@ -1,9 +1,5 @@
 .container {
   position: relative;
-  overflow: hidden;
-}
-
-.freeViewport {
   /* Clipping must never create a native scroll offset when focus moves. */
   overflow: clip;
   display: flow-root;

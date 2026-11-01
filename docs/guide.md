@@ -225,9 +225,8 @@ layout; vertical carousels still require a definite height.
 Centered selection keeps the first and last slide centered in finite mode,
 leaving empty space beyond the collection and ignoring `trimEnd`. Start alignment
 keeps trimming enabled by default, including at fractional final positions.
-Navigation indexes remain integers. Only fully visible slides are interactive;
-partial previews remain inert until they become fully visible. Content sizing
-includes visible previews.
+Navigation indexes remain integers. Visible slides, including partial previews,
+stay interactive during animation. Content sizing includes visible previews.
 
 ### Responsive layouts
 
@@ -365,9 +364,10 @@ and numbered labels. Customize `getSlideLabel` for localization or descriptive
 names. Native navigation buttons support keyboard activation; the carousel does
 not intercept global arrow keys.
 
-Buffered, partially clipped, and moving slides are inert and hidden from
-assistive technology. If focused content leaves the interactive region, focus
-returns to the root without scrolling it.
+Offscreen slides are inert and hidden from assistive technology. Visible slides
+remain clickable during animation; completed drags suppress accidental clicks.
+Keyboard focus reveals clipped controls. If a focused slide leaves the viewport,
+focus returns to the root without scrolling it.
 
 Browserless imports and `renderToString` are supported. Server HTML includes one
 slide by default, including auto mode before measurement. CSS loads with client

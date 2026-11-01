@@ -355,9 +355,9 @@ for (const axis of ['horizontal', 'vertical'] as const) {
         .click();
       await expect(page.getByTestId('cursor')).toHaveText('1');
       await page.clock.runFor(550);
-      await expect(
-        carousel.locator(':scope > [data-carousel-slide]:not([inert])')
-      ).toHaveCount(0);
+      expect(Math.abs((await position(carousel, axis, 1)) - 1)).toBeGreaterThan(
+        0.01
+      );
     });
   }
 

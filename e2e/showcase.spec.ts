@@ -135,20 +135,20 @@ test('center alignment keeps both finite endpoints centered with neighbor previe
   page,
 }) => {
   const carousel = await open(page, 'gallery');
-  const centerError = () =>
-    carousel.evaluate((root) => {
+  const centerError = (index: number) =>
+    carousel.evaluate((root, index) => {
       const viewport = root.getBoundingClientRect();
       const selected = root
-        .querySelector('[data-carousel-slide]:not([inert]) [data-item-index]')!
+        .querySelector(`[data-item-index="${index}"]`)!
         .getBoundingClientRect();
       return Math.abs(
         selected.left + selected.width / 2 - viewport.left - viewport.width / 2
       );
-    });
-  await expect.poll(centerError).toBeLessThan(2);
+    }, index);
+  await expect.poll(() => centerError(0)).toBeLessThan(2);
   for (let index = 0; index < 5; index++) await next(page).click();
   await expect(card(carousel, 5)).toBeVisible();
-  await expect.poll(centerError).toBeLessThan(2);
+  await expect.poll(() => centerError(5)).toBeLessThan(2);
   await expect(next(page)).toBeDisabled();
 });
 
@@ -440,7 +440,7 @@ test('content animation keeps the page scroll position after scrolling to the bo
     .toBeGreaterThan(initialBottom + 20);
   const duringAnimation = await page.evaluate(() => scrollY);
   await expect(visibleSlides(carousel).locator('figcaption strong')).toHaveText(
-    'Long content'
+    ['Long content']
   );
   const afterAnimation = await page.evaluate(async () => {
     await new Promise(requestAnimationFrame);
@@ -476,7 +476,7 @@ test('content duration animation preserves a bottom scroll across settlement', a
     duringAnimation - 2
   );
   await expect(visibleSlides(carousel).locator('figcaption strong')).toHaveText(
-    'Long content'
+    ['Long content']
   );
 });
 

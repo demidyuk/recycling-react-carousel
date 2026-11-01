@@ -40,6 +40,7 @@ for (const axis of ['horizontal', 'vertical'] as const) {
       );
       await page.mouse.up();
       await expect(page.getByTestId('cursor')).toHaveText('6');
+      await expect(page.getByTestId('moving')).toHaveText('false');
       await expect(
         carousel.locator(':scope > div:not([inert]) [data-item-index]')
       ).toHaveAttribute('data-item-index', '6');
@@ -177,7 +178,36 @@ test('short default swipes work across viewport widths and axes', async ({
         const selected = carousel.locator(
           ':scope > div:not([inert]) [data-item-index]'
         );
-        await expect(selected).toHaveAttribute('data-item-index', '0');
+        const expectSelected = async (index: number) => {
+          await expect
+            .poll(() =>
+              carousel.evaluate(
+                (root, { index, axis }) => {
+                  const card = root.querySelector(
+                    `[data-item-index="${index}"]`
+                  );
+                  if (!card) return Infinity;
+                  const actor = card
+                    .closest('[data-carousel-slide]')!
+                    .getBoundingClientRect();
+                  const viewport = root.getBoundingClientRect();
+                  return Math.abs(
+                    axis === 'horizontal'
+                      ? actor.left - viewport.left
+                      : actor.top - viewport.top
+                  );
+                },
+                { index, axis }
+              )
+            )
+            .toBeLessThan(0.5);
+          await expect(selected).toHaveCount(1);
+          await expect(selected).toHaveAttribute(
+            'data-item-index',
+            String(index)
+          );
+        };
+        await expectSelected(0);
         const box = await carousel.boundingBox();
         if (!box) throw new Error('The feature carousel has no layout box');
         const x = box.x + box.width / 2;
@@ -193,11 +223,11 @@ test('short default swipes work across viewport widths and axes', async ({
           await page.mouse.up();
         };
         await swipe(20);
-        await expect(selected).toHaveAttribute('data-item-index', '0');
+        await expectSelected(0);
         await swipe(40);
-        await expect(selected).toHaveAttribute('data-item-index', '1');
+        await expectSelected(1);
         await swipe(-40);
-        await expect(selected).toHaveAttribute('data-item-index', '0');
+        await expectSelected(0);
       });
     }
   }

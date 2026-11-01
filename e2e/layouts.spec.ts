@@ -54,7 +54,7 @@ test.describe('layout geometry', () => {
   for (const axis of ['horizontal', 'vertical'] as const) {
     for (const capacity of [1.2, 2.5]) {
       for (const mode of ['finite', 'loop', 'forward-loop']) {
-        test(`${axis} ${mode} capacity=${capacity}: centered geometry and inert previews`, async ({
+        test(`${axis} ${mode} capacity=${capacity}: centered geometry and interactive previews`, async ({
           page,
         }) => {
           const root = await openLayout(
@@ -71,8 +71,12 @@ test.describe('layout geometry', () => {
           const cards = root.locator(
             '[data-carousel-slide]:not([inert]) [data-item-index]'
           );
-          await expect(cards).toHaveCount(1);
-          await expect(cards).toHaveAttribute('data-item-index', '3');
+          await expect(cards).toHaveCount(result.visible);
+          await expect(
+            cards.filter({
+              has: page.getByRole('button', { name: 'Action 3', exact: true }),
+            })
+          ).toHaveCount(1);
           await page.getByRole('button', { name: 'Last', exact: true }).click();
           await expect(page.getByTestId('cursor')).toHaveText('7');
           expect((await geometry(root, axis, 7))!.center).toBeCloseTo(
@@ -457,7 +461,7 @@ test.describe('layout geometry', () => {
     await expect(root).toHaveCSS('height', '120px');
   });
 
-  test('responsive layout changes preserve selection and restore focus from clipped previews', async ({
+  test('responsive layouts retain focus on visible previews and restore it when they leave', async ({
     page,
   }) => {
     const root = await openLayout(page, 'responsive:true;slidesPerView:1.2');
@@ -472,6 +476,12 @@ test.describe('layout geometry', () => {
       .getByRole('button', { name: 'Previous', exact: true })
       .evaluate((button: HTMLButtonElement) => button.click());
     await expect(page.getByTestId('cursor')).toHaveText('2');
+    await expect(
+      root.getByRole('button', { name: 'Action 3', exact: true })
+    ).toBeFocused();
+    await page
+      .getByRole('button', { name: 'First', exact: true })
+      .evaluate((button: HTMLButtonElement) => button.click());
     await expect(root).toBeFocused();
   });
 
