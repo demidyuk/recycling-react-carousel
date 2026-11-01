@@ -2,6 +2,19 @@
   "name": "recycling-react-carousel",
   "version": "2.0.0-alpha.2",
   "description": "A React carousel that reuses slide containers for large collections",
+  "keywords": [
+    "react",
+    "react-carousel",
+    "carousel",
+    "slider",
+    "virtualization",
+    "recycling",
+    "drag",
+    "swipe",
+    "momentum",
+    "spring",
+    "responsive"
+  ],
   "license": "MIT",
   "author": "Denis Demidyuk <denisdemidyuk@gmail.com>",
   "repository": {
