@@ -1,3 +1,10 @@
+# [2.0.0-alpha.3](https://github.com/demidyuk/recycling-react-carousel/compare/v2.0.0-alpha.2...v2.0.0-alpha.3) (2026-11-01)
+
+
+### Bug Fixes
+
+* keep visible slides interactive during animation ([1e70420](https://github.com/demidyuk/recycling-react-carousel/commit/1e70420401f5986def28a3f556dcb2cac4bf2713))
+
 # [2.0.0-alpha.2](https://github.com/demidyuk/recycling-react-carousel/compare/v2.0.0-alpha.1...v2.0.0-alpha.2) (2026-11-01)
 
 
