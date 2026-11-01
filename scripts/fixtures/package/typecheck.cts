@@ -5,6 +5,7 @@ type ResolveAnimation = typeof library.resolveAnimation;
 type ResolveLength = typeof library.resolveLength;
 const component: typeof library.RCarousel = library.default;
 const props: library.RCarouselProps = {
+  dragMode: 'free-snap' satisfies library.CarouselDragMode,
   mode: 'loop',
   axis: 'horizontal',
   slidesPerView: 2,
@@ -16,6 +17,16 @@ const readController = (
   controller: ReturnType<typeof library.useCarousel>
 ): [number, number] => [controller.absoluteIndex, controller.index];
 function readPagination(controller: library.CarouselController) {
+  const unsubscribe: () => void = controller.subscribeMotion(
+    (motion: library.CarouselMotion) => {
+      const slide: library.CarouselSlideMotion | undefined = motion.slides[0];
+      if (slide)
+        slide.element.style.opacity = String(1 - Math.abs(slide.distance));
+      // @ts-expect-error frame position is read-only
+      motion.position = 0;
+    }
+  );
+  unsubscribe();
   const pageCount: number = controller.pageCount;
   const pageIndex: number | null = controller.pageIndex;
   const pageSlideIndex: number | null = controller.getPageSlideIndex(1);

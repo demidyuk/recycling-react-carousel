@@ -30,7 +30,7 @@ The root forwards an `HTMLDivElement` ref and ordinary div attributes, including
 | `axis`                                  | `'horizontal'`                   | `'horizontal'` or `'vertical'`.                                                                                                                         |
 | `trimEnd`                               | `true`                           | Trim the last start-aligned finite viewport; ignored with center alignment.                                                                             |
 | `drag`                                  | `true`                           | Enable mouse and touch dragging.                                                                                                                        |
-| `dragMode`                              | `'snap'`                         | `'snap'` selects slide anchors after dragging; `'free'` coasts to a continuous resting position.                                                        |
+| `dragMode`                              | `'snap'`                         | `'snap'` selects slide anchors; `'free'` coasts between slides; `'free-snap'` projects momentum and finishes on a slide stop.                           |
 | `wheel`                                 | `false`                          | Enable axis-matched wheel/trackpad gestures, including Shift+wheel horizontally. Vertical gestures continue scrolling the page on horizontal carousels. |
 | `swipeThreshold`                        | `30`                             | Positive pixels or a percentage of one slide's content size, excluding its gap.                                                                         |
 | `crossAxisSize`                         | `'content'`                      | Fit content and adjust height during horizontal motion, or use `'container'` for a size set by your layout.                                             |
@@ -123,20 +123,21 @@ Each controller binds to one mounted carousel at a time. Navigation methods run
 immediately. Before measurement and after detachment, commands do nothing and
 navigation buttons are disabled. A controller can be rebound after unmounting.
 
-| Member                                                     | Meaning                                                                                |
-| ---------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `index`                                                    | Local navigation anchor, not a pagination page; centered with `snapAlign="center"`.    |
-| `absoluteIndex`                                            | Global position, including repeated cycles.                                            |
-| `slideCount`                                               | Supplied item or normalized child count.                                               |
-| `slidesPerView`                                            | Resolved `slidesPerView`, excluding buffered slides.                                   |
-| `canPrev`, `canNext`                                       | Whether navigation is available within the current bounds.                             |
-| `isReady`, `isAnimating`                                   | Measurement and motion state.                                                          |
-| `absoluteBounds`                                           | `{ min, max }`, or `null` before measurement; repeating bounds can contain infinities. |
-| `next()`, `prev()`                                         | Move by `slidesToScroll`, clamped to bounds.                                           |
-| `moveBy(delta)`                                            | Move by a signed safe integer; zero does nothing.                                      |
-| `goTo(index)`                                              | Select the nearest reachable local occurrence; forward wins equal-distance ties.       |
-| `goToAbsolute(position)`                                   | Select a global position, clamped to bounds.                                           |
-| `getPrevButtonProps(props?)`, `getNextButtonProps(props?)` | Compose native button props and navigation handlers.                                   |
+| Member                                                     | Meaning                                                                                                                             |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `index`                                                    | Local navigation anchor, not a pagination page; centered with `snapAlign="center"`.                                                 |
+| `absoluteIndex`                                            | Global position, including repeated cycles.                                                                                         |
+| `slideCount`                                               | Supplied item or normalized child count.                                                                                            |
+| `slidesPerView`                                            | Resolved `slidesPerView`, excluding buffered slides.                                                                                |
+| `canPrev`, `canNext`                                       | Whether navigation is available within the current bounds.                                                                          |
+| `isReady`, `isAnimating`                                   | Measurement and motion state.                                                                                                       |
+| `absoluteBounds`                                           | `{ min, max }`, or `null` before measurement; repeating bounds can contain infinities.                                              |
+| `next()`, `prev()`                                         | Move by `slidesToScroll`, clamped to bounds.                                                                                        |
+| `moveBy(delta)`                                            | Move by a signed safe integer; zero does nothing.                                                                                   |
+| `goTo(index)`                                              | Select the nearest reachable local occurrence; forward wins equal-distance ties.                                                    |
+| `goToAbsolute(position)`                                   | Select a global position, clamped to bounds.                                                                                        |
+| `getPrevButtonProps(props?)`, `getNextButtonProps(props?)` | Compose native button props and navigation handlers.                                                                                |
+| `subscribeMotion(listener)`                                | Receive a `CarouselMotion` frame immediately when measured and on committed layout/motion changes. Returns an unsubscribe function. |
 
 Button getters supply `type="button"`, `disabled`, and `aria-controls`. A supplied
 `onClick` runs first; `event.preventDefault()` cancels navigation. A consumer's
@@ -145,6 +146,47 @@ Button getters supply `type="button"`, `disabled`, and `aria-controls`. A suppli
 Finite end trimming can clamp `goTo(lastIndex)` to an earlier leading index to
 keep the last viewport full. The pagination helpers below account for this;
 `index` continues to describe the slide anchor rather than the selected page.
+
+### Motion subscriptions
+
+`CarouselMotion`, `CarouselSlideMotion`, and `CarouselDragMode` are exported types.
+Register `controller.subscribeMotion` in an effect and return its unsubscribe
+function. Delivery starts after measurement and pauses while detached.
+Subscriptions remain registered across detach/rebind until unsubscribed.
+Callbacks can repeat a position after a layout commit.
+
+| Frame field  | Meaning                                                                                                      |
+| ------------ | ------------------------------------------------------------------------------------------------------------ |
+| `position`   | Current physical global position in slide-pitch units, including fractional values and loop cycles.          |
+| `axis`       | Resolved `'horizontal'` or `'vertical'` axis.                                                                |
+| `slideSize`  | Slide content size in pixels along the scrolling axis.                                                       |
+| `slidePitch` | Slide content size plus gap, in pixels.                                                                      |
+| `anchor`     | Center of an aligned slide in pixels from the viewport's primary start, accounting for insets and alignment. |
+| `slides`     | Rendered content, including buffered slides and distinct loop occurrences; empty for empty content.          |
+
+Each `CarouselSlideMotion` contains `element`, `index`, `absoluteIndex`, and
+`distance`. The element is the slide's content wrapper, not the positioning
+carrier. Apply opacity or transform your own content inside it. Its parent is
+owned by the carousel. Elements can be reused for different items; do not cache
+their indexes. Frame fields are read-only and represent one committed update.
+
+Distance is signed in slide pitches from the alignment point: zero is aligned,
+positive lies after it, and negative lies before it. A slide's center in viewport
+pixels is `anchor + distance * slidePitch`.
+They describe layout before consumer transforms; rendered subpixel coordinates
+can be rounded by the browser.
+`position` follows physical movement, while controller indexes describe the
+navigation destination. Large API jumps skip intermediate indexes, so `position`
+can jump when a compressed route changes its nearest item. Per-slide distances
+continue to describe the actual geometry along that route; use them for effects.
+
+`dragMode="free-snap"` projects a destination from bounded release velocity, then
+selects the nearest stop in `slidesToScroll` increments from the grabbed slide,
+including finite terminal stops. The default spring starts with release velocity;
+custom spring settings or an explicit duration are honored. It ignores
+`swipeThreshold`. A new press catches motion;
+release aligns it. Wheel streams retain device momentum and only align afterward.
+Reduced motion and disabled animation select the reached stop immediately.
 
 ### Headless pagination
 
@@ -174,7 +216,6 @@ If looping falls back to finite bounds because there are too few slides, paginat
 uses the finite rules. Previous/next navigation and dragging retain their existing
 movement rules; they are not realigned to page targets.
 
-Page counts and targets are calculated without scanning the collection.
 `getPageIndexes()` returns only the requested window and shifts it inward near
 either end. For even limits, the extra position appears after the selected page.
 It does not add first/last-page entries or ellipses. To get every page, use

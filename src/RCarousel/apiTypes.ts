@@ -8,6 +8,29 @@ export type {
 export type CarouselLength = number | `${number}px` | `${number}%`;
 export type CarouselChangeReason =
   'drag' | 'wheel' | 'api' | 'resize' | 'slides-change';
+export type CarouselDragMode = 'snap' | 'free' | 'free-snap';
+
+export interface CarouselSlideMotion {
+  /** Content wrapper; transform its content rather than the positioning carrier. */
+  readonly element: HTMLElement;
+  readonly index: number;
+  readonly absoluteIndex: number;
+  /** Signed slide pitches from the anchor: zero is aligned, positive is after it. */
+  readonly distance: number;
+}
+
+export interface CarouselMotion {
+  /** Physical global position in slide pitches. Large API jumps can skip indexes. */
+  readonly position: number;
+  readonly axis: 'horizontal' | 'vertical';
+  /** Slide content size and pitch (content plus gap), in pixels. */
+  readonly slideSize: number;
+  readonly slidePitch: number;
+  /** Center of an aligned slide, in pixels from the viewport's primary start. */
+  readonly anchor: number;
+  /** Rendered content only, including buffers and distinct loop occurrences. */
+  readonly slides: readonly CarouselSlideMotion[];
+}
 export type CarouselAnimation =
   | false
   | { type: 'spring'; tension?: number; friction?: number; mass?: number }

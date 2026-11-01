@@ -63,6 +63,9 @@ function InputExample({
         <button type="button" onClick={() => carousel.goTo(700)}>
           Jump to 700
         </button>
+        <button type="button" onClick={() => carousel.goTo(count - 1)}>
+          Jump to last
+        </button>
         <button type="button" onClick={() => setWheel((value) => !value)}>
           Toggle wheel
         </button>
@@ -176,6 +179,7 @@ const meta = {
     mode: 'finite',
     axis: 'horizontal',
     slidesPerView: 1,
+    slidesToScroll: 1,
     controlled: false,
     accept: true,
     count: 1000,
@@ -185,6 +189,21 @@ const meta = {
 } satisfies Meta<typeof InputExample>;
 export default meta;
 export const Free: StoryObj<typeof meta> = {};
+export const Momentum: StoryObj<typeof meta> = {
+  args: {
+    dragMode: 'free-snap',
+    animation: { type: 'spring', tension: 170, friction: 26, mass: 1 },
+  },
+};
+export const MomentumWithoutAnimation: StoryObj<typeof meta> = {
+  args: { dragMode: 'free-snap', animation: false },
+};
+export const MomentumDuration: StoryObj<typeof meta> = {
+  args: {
+    dragMode: 'free-snap',
+    animation: { type: 'duration', duration: 150 },
+  },
+};
 
 function NestedWheelExample() {
   const outer = useCarousel();

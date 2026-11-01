@@ -1,7 +1,10 @@
 import { useState, useSyncExternalStore } from 'react';
 import type { ButtonHTMLAttributes } from 'react';
 import { invariant } from '../invariant.js';
-import type { CarouselSnapshot } from '../RCarousel/apiTypes.js';
+import type {
+  CarouselMotion,
+  CarouselSnapshot,
+} from '../RCarousel/apiTypes.js';
 import { assertInteger } from '../RCarousel/helpers/configuration.js';
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement>;
@@ -10,6 +13,8 @@ export type CarouselCommand =
   | { type: 'moveBy' | 'goTo' | 'goToAbsolute'; value: number };
 
 export interface CarouselController extends Readonly<CarouselSnapshot> {
+  /** Subscribe to measured slide motion. Returns a function to unsubscribe. */
+  subscribeMotion(listener: (motion: CarouselMotion) => void): () => void;
   /** Number of logical pages, or zero until ready and after detachment. */
   readonly pageCount: number;
   /** Zero-based page containing the local slide anchor, or null without pages. */
@@ -89,6 +94,9 @@ interface ControllerStore {
   id?: string;
   dispatch?: (command: CarouselCommand) => void;
   listeners: Set<() => void>;
+  motionListeners: Set<(motion: CarouselMotion) => void>;
+  readMotion?: () => CarouselMotion | null;
+  lastMotion?: { frame: CarouselMotion; content: (ChildNode | null)[] };
 }
 
 const stores = new WeakMap<CarouselController, ControllerStore>();
@@ -103,6 +111,7 @@ function createController() {
   const store: ControllerStore = {
     state: emptyState,
     listeners: new Set(),
+    motionListeners: new Set(),
   };
   const dispatch = (command: CarouselCommand) => store.dispatch?.(command);
   const buttonProps = (
@@ -164,6 +173,18 @@ function createController() {
     };
   };
   const controller = {
+    subscribeMotion: (listener: (motion: CarouselMotion) => void) => {
+      const first = !store.motionListeners.size;
+      store.motionListeners.add(listener);
+      const motion = readControllerMotion(store);
+      // A late subscriber must not replace the frame being delivered to others.
+      if (first) store.lastMotion = motion ? rememberMotion(motion) : undefined;
+      if (motion) listener(motion);
+      return () => {
+        store.motionListeners.delete(listener);
+        if (!store.motionListeners.size) store.lastMotion = undefined;
+      };
+    },
     next: () => dispatch({ type: 'next' }),
     prev: () => dispatch({ type: 'prev' }),
     moveBy: (value: number) => dispatch({ type: 'moveBy', value }),
@@ -241,6 +262,7 @@ export function attachController(
     store.owner = undefined;
     store.id = undefined;
     store.dispatch = undefined;
+    store.lastMotion = undefined;
     store.state = {
       ...store.state,
       snapshot: {
@@ -285,4 +307,85 @@ export function publishControllerStep(
       step,
       store.state.aligned
     );
+}
+
+/** Internal: the viewport owns the reader and releases its DOM references on cleanup. */
+export function bindControllerMotion(
+  controller: CarouselController,
+  read: () => CarouselMotion | null
+) {
+  const store = getStore(controller);
+  store.readMotion = read;
+  // Descendant layout effects run before the RCarousel controller commits.
+  // The parent publishes synchronously after committing; this fallback covers
+  // viewport-only layout updates without exposing an intermediate snapshot.
+  queueMicrotask(() => {
+    if (store.readMotion === read) publishControllerMotion(controller);
+  });
+  return () => {
+    if (store.readMotion === read) store.readMotion = undefined;
+  };
+}
+
+/** Internal: keep the frame channel separate from useSyncExternalStore. */
+export function publishControllerMotion(controller: CarouselController) {
+  const store = getStore(controller);
+  if (!store.motionListeners.size) return;
+  const motion = readControllerMotion(store);
+  if (!motion) {
+    store.lastMotion = undefined;
+    return;
+  }
+  const last = store.lastMotion;
+  if (last && sameMotion(last, motion)) return;
+  const publication = rememberMotion(motion);
+  store.lastMotion = publication;
+  let read = store.readMotion;
+  for (const listener of [...store.motionListeners]) {
+    if (store.lastMotion !== publication) break;
+    if (store.readMotion !== read) {
+      const current = readControllerMotion(store);
+      if (!current || !sameMotion(publication, current)) break;
+      read = store.readMotion;
+    }
+    if (store.motionListeners.has(listener)) listener(motion);
+  }
+}
+
+function readControllerMotion(store: ControllerStore) {
+  return store.owner && store.state.snapshot.isReady
+    ? store.readMotion?.()
+    : null;
+}
+
+function rememberMotion(frame: CarouselMotion) {
+  return {
+    frame,
+    content: frame.slides.map((slide) => slide.element.firstChild),
+  };
+}
+
+function sameMotion(
+  last: NonNullable<ControllerStore['lastMotion']>,
+  next: CarouselMotion
+) {
+  const previous = last.frame;
+  return (
+    previous.position === next.position &&
+    previous.axis === next.axis &&
+    previous.slideSize === next.slideSize &&
+    previous.slidePitch === next.slidePitch &&
+    previous.anchor === next.anchor &&
+    previous.slides.length === next.slides.length &&
+    next.slides.every((slide, index) => {
+      const before = previous.slides[index];
+      return (
+        slide.element === before.element &&
+        slide.index === before.index &&
+        slide.absoluteIndex === before.absoluteIndex &&
+        slide.distance === before.distance &&
+        slide.element.firstChild === last.content[index]
+      );
+    })
+  );
 }

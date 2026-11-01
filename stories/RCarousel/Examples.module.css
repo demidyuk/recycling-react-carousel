@@ -1,6 +1,6 @@
 .demo {
   --ink: #202938;
-  --muted: #758092;
+  --muted: #657185;
   --line: #e5eaf0;
   --blue: #3568d4;
   width: min(100%, 1040px);
@@ -68,6 +68,7 @@
 }
 .viewport {
   min-width: 0;
+  -webkit-user-select: none;
   user-select: none;
   border-radius: 14px;
 }

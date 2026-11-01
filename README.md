@@ -103,6 +103,10 @@ for data updates, controlled navigation, and `memo`/`createElement` typing.
   for rules based on container width.
 - Set `mode="loop"` to repeat in both directions, or `mode="forward-loop"` to
   repeat at nonnegative absolute positions.
+- Set `dragMode="free-snap"` for momentum that finishes on a slide, or
+  `dragMode="free"` to stop between slides. `wheel` enables trackpad and wheel input.
+- Use [`controller.subscribeMotion`](docs/guide.md#effects-during-motion) for
+  fading, scaling, or picker effects during dragging and animation.
 - For a fixed height, use `crossAxisSize="container"` and
   `style={{ height: 300 }}`. Vertical layouts always need a definite height.
 - Supply an accessible name with `aria-label` or `aria-labelledby`. Native

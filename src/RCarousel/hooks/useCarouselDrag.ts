@@ -18,6 +18,7 @@ interface DragOptions {
   vertical: boolean;
   onDrag: (drag: CarouselDrag) => void;
   onStart?: () => void;
+  onEnd?: () => void;
 }
 
 interface PointerSession {
@@ -50,13 +51,16 @@ export function useCarouselDrag(options: DragOptions) {
     pointer.dispose();
     if (pointer.element.hasPointerCapture?.(pointer.id))
       pointer.element.releasePointerCapture(pointer.id);
-    if (notify && pointer.intentional)
-      committed.current.onDrag({
-        down: false,
-        movement: pointer.last,
-        direction: pointer.direction,
-        canceled: true,
-      });
+    if (notify) {
+      if (pointer.intentional)
+        committed.current.onDrag({
+          down: false,
+          movement: pointer.last,
+          direction: pointer.direction,
+          canceled: true,
+        });
+      committed.current.onEnd?.();
+    }
   }, []);
 
   useIsomorphicLayoutEffect(() => {
@@ -122,7 +126,7 @@ export function useCarouselDrag(options: DragOptions) {
           )
             return;
           if (Math.abs(cross) > Math.abs(primary)) {
-            cancel();
+            cancel(true);
             return;
           }
           pointer.intentional = true;
@@ -190,6 +194,7 @@ export function useCarouselDrag(options: DragOptions) {
             direction,
             velocity,
           });
+        committed.current.onEnd?.();
       };
       const abort = (event: PointerEvent) => {
         if (event.pointerId === pointer.id) cancel(true);

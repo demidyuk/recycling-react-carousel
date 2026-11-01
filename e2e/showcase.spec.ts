@@ -818,6 +818,61 @@ for (const axis of ['horizontal', 'vertical'] as const) {
 }
 
 for (const axis of ['horizontal', 'vertical'] as const) {
+  test(`infinite loading preserves a caught ${axis} drag when the next batch arrives`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 900, height: 1000 });
+    await page.clock.install({ time: new Date('2026-10-31T00:00:00Z') });
+    const carousel = await open(
+      page,
+      'infinite-loading',
+      `axis:${axis};dragMode:free-snap;defaultIndex:6;crossAxisSize:container`
+    );
+    await page.clock.pauseAt(new Date('2026-10-31T00:01:00Z'));
+    await expect(page.getByTestId('loaded-records')).toHaveText(
+      '9 items loaded'
+    );
+    const box = (await carousel.boundingBox())!;
+    const vertical = axis === 'vertical';
+    const actor = (await carousel
+      .locator(':scope > [data-carousel-slide]')
+      .first()
+      .boundingBox())!;
+    const pitch = vertical ? actor.height : actor.width;
+    const x = box.x + box.width * (vertical ? 0.5 : 0.8);
+    const y = box.y + box.height * (vertical ? 0.8 : 0.5);
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.mouse.move(
+      x - (vertical ? 0 : pitch * 1.7),
+      y - (vertical ? pitch * 1.7 : 0),
+      { steps: 12 }
+    );
+    await expect(
+      page.getByRole('status', { name: 'Loading status' })
+    ).toHaveText('Loading more items…');
+    await page.clock.runFor(150);
+    await page.mouse.up();
+    await page.clock.runFor(16);
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    const anchor = carousel.locator('[data-item-index="8"]');
+    const coordinate = async () =>
+      (await anchor.boundingBox())![vertical ? 'y' : 'x'];
+    const before = await coordinate();
+    await page.clock.runFor(1000);
+    await expect(page.getByTestId('loaded-records')).toHaveText(
+      '15 items loaded'
+    );
+    expect(await coordinate()).toBeCloseTo(before, 0);
+    await page.mouse.move(x - (vertical ? 0 : 12), y - (vertical ? 12 : 0));
+    expect(await coordinate()).toBeCloseTo(before - 12, 0);
+    await page.mouse.up();
+    await page.clock.runFor(1400);
+    await expect(visibleSlides(carousel)).toHaveCount(3);
+    await expect(next(page)).toBeEnabled();
+  });
+
   test(`infinite loading replaces its ${axis} loading card without shifting the current view`, async ({
     page,
   }) => {
@@ -895,6 +950,7 @@ const publicStories = [
   'duration-animation',
   'large-jumps',
   'infinite-loading',
+  'time-picker',
 ];
 
 for (const width of [1280, 390]) {

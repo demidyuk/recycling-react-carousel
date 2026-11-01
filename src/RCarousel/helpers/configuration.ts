@@ -20,8 +20,9 @@ export function validateProps(
   invariant(
     props.dragMode === undefined ||
       props.dragMode === 'snap' ||
-      props.dragMode === 'free',
-    'dragMode must be snap or free'
+      props.dragMode === 'free' ||
+      props.dragMode === 'free-snap',
+    'dragMode must be snap, free, or free-snap'
   );
   invariant(
     props.wheel === undefined || typeof props.wheel === 'boolean',

@@ -112,6 +112,36 @@ test('constructor callbacks retain their binding when passed independently', () 
   expect(changed).toHaveBeenCalledTimes(2);
 });
 
+test('subscription changes during publication do not revisit newly added listeners', () => {
+  const motion = new ScalarMotion(0);
+  const added = vi.fn();
+  const removed = vi.fn();
+  let unsubscribeRemoved = () => {};
+  motion.subscribe(() => {
+    unsubscribeRemoved();
+    motion.subscribe(added);
+  });
+  unsubscribeRemoved = motion.subscribe(removed);
+  motion.set(1);
+  expect(removed).not.toHaveBeenCalled();
+  expect(added).not.toHaveBeenCalled();
+  motion.set(2);
+  expect(added).toHaveBeenCalledOnce();
+});
+
+test('a spring can continue with release velocity instead of restarting at zero', () => {
+  const moving = new ScalarMotion(0);
+  const still = new ScalarMotion(0);
+  const callbacks = { onChange: vi.fn(), onRest: vi.fn() };
+  moving.start(1, {}, callbacks, 0.01);
+  still.start(1, {}, callbacks);
+  expect(moving.velocity).toBe(0.01);
+  moving.advance(16);
+  still.advance(16);
+  expect(moving.get()).toBeGreaterThan(still.get());
+  expect(moving.config.duration).toBeUndefined();
+});
+
 test('switching between spring and duration motion restores defaults and preserves live velocity', () => {
   const motion = new ScalarMotion(0);
   const callbacks = { onChange: vi.fn(), onRest: vi.fn() };

@@ -18,6 +18,7 @@ import {
   attachController,
   publishController,
   publishControllerStep,
+  publishControllerMotion,
 } from '../hooks/useCarousel.js';
 import type {
   CarouselCommand,
@@ -34,6 +35,7 @@ import type {
   CarouselBreakpoint,
   CarouselChangeDetails,
   CarouselChangeReason,
+  CarouselDragMode,
   CarouselLength,
   CarouselNavigateDetails,
   CarouselSnapshot,
@@ -78,8 +80,8 @@ export interface RCarouselProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Uses width even for vertical layouts; defaults to container. */
   breakpointsBase?: 'container' | 'window';
   drag?: boolean;
-  /** Snap to slides (default), or coast to a stop between them. */
-  dragMode?: 'snap' | 'free';
+  /** Snap to slides (default), coast freely, or snap with release momentum. */
+  dragMode?: CarouselDragMode;
   /** Enable wheel/trackpad input along the carousel axis. Horizontal carousels keep vertical page scrolling. */
   wheel?: boolean;
   /** Positive pixels or a percentage of one slide's content size, excluding gap. */
@@ -343,7 +345,7 @@ export const RCarousel = /*#__PURE__*/ forwardRef(function RCarousel(
         viewport?.ready &&
         childCount &&
         (position > viewport.min ||
-          (dragMode === 'free' &&
+          (dragMode !== 'snap' &&
             position === viewport.cursor &&
             viewport.freePosition > viewport.min))
       ),
@@ -351,7 +353,7 @@ export const RCarousel = /*#__PURE__*/ forwardRef(function RCarousel(
         viewport?.ready &&
         childCount &&
         (position < viewport.max ||
-          (dragMode === 'free' &&
+          (dragMode !== 'snap' &&
             position === viewport.cursor &&
             viewport.freePosition < viewport.snapLimit))
       ),
@@ -382,7 +384,7 @@ export const RCarousel = /*#__PURE__*/ forwardRef(function RCarousel(
       localControlled: index !== undefined,
       aligned: viewport?.aligned ?? true,
       physicalPosition:
-        dragMode === 'free'
+        dragMode !== 'snap'
           ? (viewport?.freePosition ?? requestedPosition)
           : requestedPosition,
       onIndexChange,
@@ -542,13 +544,15 @@ export const RCarousel = /*#__PURE__*/ forwardRef(function RCarousel(
   useIsomorphicLayoutEffect(() => {
     // The child commits its resolved step before this effect, while the
     // viewport state update may still be queued until after ancestor effects.
-    if (controller)
+    if (controller) {
       publishController(
         controller,
         snapshot,
         resolvedStep.current,
         viewport?.aligned ?? true
       );
+      publishControllerMotion(controller);
+    }
   });
 
   const previousNotification = useRef<CarouselSnapshot | null>(null);
@@ -606,6 +610,7 @@ export const RCarousel = /*#__PURE__*/ forwardRef(function RCarousel(
       onResolvedStep={receiveStep}
       drag={drag}
       dragMode={dragMode}
+      motionController={controller}
       wheel={wheel}
       navigationRequest={navigationRequest}
       onFocusAlign={requestAlignment}

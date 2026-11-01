@@ -123,15 +123,13 @@ Both callbacks receive the item and its zero-based local index, including in
 repeating modes. Both are required with `items`; do not combine them with
 `children` or supply callbacks without `items`.
 
-Only visible and buffered slots read items and call these functions. The carousel
-does not create elements or scan keys for the whole collection, or keep a growing
-element cache.
+Only visible and buffered slots read items and call these functions.
 Callbacks must be pure: React may repeat them during StrictMode or interrupted
 renders. Put Hooks inside components returned by `renderItem`.
 
 Every array entry counts as one slide, even when its renderer returns `null`.
-Empty arrays and primitive or undefined entries are supported. This API accepts
-your array; it does not fetch data.
+Empty arrays and primitive or undefined entries are supported. Load data in the
+parent and pass the array through `items`.
 
 ### Keys and updates
 
@@ -168,10 +166,9 @@ reject items props. This applies to both default and named `RCarousel` exports.
 The default horizontal carousel fills its parent's width and fits the height of
 its content. Give images intrinsic dimensions so their space can be measured.
 The height adjusts as horizontal slides move, including during dragging and
-direction changes. It uses the navigation animation without extra configuration
-or a CSS height transition. Disabled animation and reduced motion settle
-immediately. Content can be clipped during motion; once settled, the viewport
-fits its visible content.
+direction changes. Height changes use the configured navigation animation.
+Disabled animation and reduced motion settle immediately. Content can be clipped
+during motion; once settled, the viewport fits its visible content.
 
 ```tsx
 <RCarousel gap={16}>{quotes}</RCarousel>
@@ -275,8 +272,9 @@ completed drags suppress pointer clicks.
 
 Inputs, textareas, selects, editable content, and descendants of
 `data-carousel-no-drag` do not initiate dragging. A root `onPointerDown` can cancel
-initiation with `event.preventDefault()`. Set `style.userSelect` when needed to
-control text selection.
+initiation with `event.preventDefault()`. For a drag surface that should not
+select text, use `style={{ userSelect: 'none', WebkitUserSelect: 'none' }}`;
+Safari needs the prefixed rule.
 
 Set `dragMode="free"` to stop between slides. Slow drags stay where released;
 quick releases coast with bounded, decelerating momentum. A new press stops the
@@ -296,6 +294,25 @@ anchors. Indexes remain integers and describe the nearest resting anchor;
 controlled props can accept or reject that selection. Reduced motion and disabled
 animation keep the release point without momentum.
 
+Use `dragMode="free-snap"` when a flick should carry momentum and finish on a
+slide. The release velocity projects a resting position, then the carousel
+chooses the nearest stop in `slidesToScroll` increments from the slide grabbed.
+Finite boundaries include the trimmed final viewport, even when its physical
+position is fractional. A stopped drag selects by distance. A new press catches
+the moving carousel and holds it until release; it then aligns the nearest
+stop. This mode does not use `swipeThreshold`. Reduced motion and disabled
+animation align the reached position immediately, without projecting momentum.
+The default spring carries the release velocity into this move. Spring tension,
+friction and mass configure its response; an explicit duration configuration is
+also honored. Free mode keeps its decelerating coast between slides. API
+navigation uses the configured animation in all modes.
+
+```tsx
+<RCarousel dragMode="free-snap" mode="loop" snapAlign="center">
+  {slides}
+</RCarousel>
+```
+
 `wheel` is opt-in and independent of `drag`. Horizontal trackpad gestures and
 Shift+wheel move horizontal carousels; ordinary vertical gestures scroll the
 page. Vertical carousels use vertical gestures and release them to the page at
@@ -305,6 +322,39 @@ stream ends; it does not add a second fling. Pinch-to-zoom gestures, form contro
 editable content, and scrollable descendants keep their native behavior.
 Use `data-carousel-no-wheel` to exclude another interactive region.
 A root `onWheel` can cancel carousel input with `event.preventDefault()`.
+
+## Effects during motion
+
+Use `subscribeMotion` to fade, scale, or rotate slide content during dragging and
+animation:
+
+```tsx
+useEffect(
+  () =>
+    carousel.subscribeMotion(({ slides }) => {
+      for (const { element, distance } of slides) {
+        element.style.opacity = String(
+          Math.max(0.25, 1 - Math.abs(distance) * 0.2)
+        );
+      }
+    }),
+  [carousel]
+);
+```
+
+`distance` is measured in slide pitches from the alignment point: zero is
+aligned, positive is after it, and negative is before it. The callback includes
+the resolved slide size, pitch, and anchor in pixels. A callback receives only
+rendered slides, including buffers and separate loop occurrences. Their elements
+may be recycled for different items; use each callback's index and distance.
+
+The first callback runs immediately when already measured, or after measurement.
+Further callbacks follow committed layout and motion changes and may repeat the
+same position. Return the unsubscribe function from your effect. Delivery stops
+while the carousel is detached and resumes if the controller is rebound.
+Keep frame updates idempotent and apply visual styles directly. Store a selected
+value in React only when it changes. See the [motion API](api.md#motion-subscriptions)
+for the full frame shape and large-jump behavior.
 
 ## Accessibility and server rendering
 
@@ -346,4 +396,4 @@ can be interrupted by dragging.
 
 With `children`, recycling limits mounted DOM while the caller creates the full
 element collection and the carousel normalizes it. With `items`, element creation
-is limited to the pool. Neither mode retains an ever-growing element cache.
+is limited to the pool.

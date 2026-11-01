@@ -99,6 +99,33 @@ for (const axis of ['horizontal', 'vertical'] as const) {
     }
   }
 
+  for (const slideAlign of ['center', 'end']) {
+    for (const crossAxisSize of ['content', 'container']) {
+      test(`${axis} ${slideAlign} ${crossAxisSize} alignment keeps slide gaps through looping and resizing`, async ({
+        page,
+      }) => {
+        const carousel = await open(
+          page,
+          axis,
+          `slidesPerView:2;mode:loop;gap:16;slideAlign:${slideAlign};crossAxisSize:${crossAxisSize}`
+        );
+        await expectGap(carousel, axis, 2, 16);
+        await page
+          .getByRole('button', { name: 'Last slide', exact: true })
+          .click();
+        await expect(page.getByTestId('slide-number')).toHaveText('8');
+        await expectGap(carousel, axis, 2, 16);
+        await page
+          .getByRole('button', { name: 'Next slide', exact: true })
+          .click();
+        await expect(page.getByTestId('slide-number')).toHaveText('1');
+        await expectGap(carousel, axis, 2, 16);
+        await page.setViewportSize({ width: 390, height: 850 });
+        await expectGap(carousel, axis, 2, 16);
+      });
+    }
+  }
+
   test(`${axis}: content sizing follows card edges within a gap during drag reversal`, async ({
     page,
   }) => {

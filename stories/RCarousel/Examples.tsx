@@ -16,10 +16,7 @@ import styles from './Examples.module.css';
 
 export function BasicExample(args: RCarouselProps) {
   return (
-    <Demo
-      title="Basic dragging"
-      description="Drag or swipe between slides without a controller."
-    >
+    <Demo title="Basic dragging" description="Drag or swipe between slides.">
       <RCarousel
         {...demoViewportProps(args)}
         aria-label="Basic dragging slides"

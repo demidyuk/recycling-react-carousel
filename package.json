@@ -57,12 +57,12 @@
     {
       "name": "ESM",
       "path": "dist/index.js",
-      "limit": "15.5 KB"
+      "limit": "16.5 KB"
     },
     {
       "name": "CommonJS",
       "path": "dist/index.cjs",
-      "limit": "16 KB"
+      "limit": "16.75 KB"
     },
     {
       "name": "useCarousel only",

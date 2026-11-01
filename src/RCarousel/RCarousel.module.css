@@ -19,18 +19,6 @@
   box-sizing: border-box;
 }
 
-.child-wrapper.align-center-x {
-  position: absolute;
-  left: 50%;
-  transform: translate3d(-50%, 0, 0);
-}
-
-.child-wrapper.align-center-y {
-  position: absolute;
-  top: 50%;
-  transform: translate3d(0, -50%, 0);
-}
-
 .w-100 {
   width: 100%;
 }
@@ -63,12 +51,10 @@
   flex-direction: row;
 }
 
-.child-wrapper.align-end-y {
-  position: absolute;
-  bottom: 0;
+.align-center {
+  justify-content: center;
 }
 
-.child-wrapper.align-end-x {
-  position: absolute;
-  right: 0;
+.align-end {
+  justify-content: flex-end;
 }

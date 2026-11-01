@@ -52,6 +52,12 @@ Build, stories, and tests:
   `ResizeObserver` access.
 - Keep animation updates out of render and effects idempotent under React
   StrictMode.
+- Keep docs and story descriptions focused on setup, API usage, and observable
+  behavior. Include implementation details only when they affect how consumers
+  use the API.
+- Keep `subscribeMotion` independent of React snapshot updates. Publish committed
+  slide identities and distances, and release its DOM references on detach.
+  Preserve `snap` and `free` semantics when changing `free-snap` momentum.
 - Preserve automatic CSS injection; consumers must not need a stylesheet
   import.
 - Keep relative source imports suffixed with `.js` so generated ESM and

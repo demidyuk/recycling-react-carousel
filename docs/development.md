@@ -30,11 +30,9 @@ build, size limits, package metadata checks, and packed ESM/CommonJS consumers o
 React 18.0 and 19. It also checks accepted and rejected TypeScript usage against
 the built declarations.
 
-`size` measures minified Brotli output with React and React DOM excluded. Separate
-budgets cover the full ESM build (15.5 kB), CommonJS (16 kB), and a `useCarousel`
-import (2.5 kB). Hook-only consumers must discard the renderer and motion engine
-while retaining automatic CSS injection. The packed browser checks verify this
-for React 18 and 19.
+`size` measures minified Brotli output with React and React DOM excluded. Limits
+in [`package.json`](../package.json) cover ESM, CommonJS, and `useCarousel`
+imports.
 
 Use `npm test -- <file>` for focused unit tests, or `npm run test:watch` while
 working. Shared test setup unmounts components before restoring spies, browser
@@ -78,18 +76,19 @@ the existing carousel. Local and absolute position props remain mutually exclusi
 Keep `rcarousel--...` story IDs stable when changing display names.
 
 Use the width slider to try container breakpoints. Expansion state lives in the
-parent, keyed by item ID. The large collection example renders a small pool from
-1,000 items and displays its slot count. Infinite loading shows three slides by
-default with a loading card at the end of its items. The next batch replaces that
-card in place, and a new loading card follows the batch. Keeping this end card
-mounted avoids changing geometry when a request starts. Loading starts when the
-end card enters the viewport or through Load more items. It allows one request at
-a time, cancels timers on unmount, and appends results during dragging or animation
-without waiting for release or moving the current view.
-The examples use system fonts and CSS, with no external media.
+parent, keyed by item ID. The large collection example renders a small pool and
+displays its slot count. Infinite loading keeps a loading card at the end of its
+items. The next batch replaces that card in place, and a new loading card follows
+the batch. Keeping this end card mounted avoids changing geometry when a request
+starts. Loading starts when the end card enters the viewport or through Load more
+items. It allows one request at a time, cancels timers on unmount, and appends
+results during dragging or animation while keeping the current view.
+The time picker demonstrates `free-snap`, wheel input, keyboard controls, and
+`subscribeMotion` effects. Shared configuration Controls remain available.
 See the [usage guide](guide.md#controlled-navigation) for controlled position props.
 
-Playwright starts the test profile on port 6017. That profile includes public
+Playwright starts the test profile using the server settings in
+[`playwright.config.ts`](../playwright.config.ts). That profile includes public
 examples and regression fixtures. Numbered-card fixtures live in
 `e2e/fixtures/technical` and appear in the test-only Feature harness stories.
 Geometry and motion tests use these fixtures so presentation changes do not

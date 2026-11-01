@@ -26,6 +26,7 @@ import type {
   CarouselState,
 } from '../helpers/index.js';
 import { useIsomorphicLayoutEffect } from './useIsomorphicLayoutEffect.js';
+import type { CarouselDragMode } from '../apiTypes.js';
 
 const MAX_COMPRESSED_JUMP_DURATION_MS = 500;
 const linear = (progress: number) => progress;
@@ -36,7 +37,7 @@ interface UseCarouselControllerProps {
   slideCount: number;
   visibleCount: number;
   drag: boolean;
-  dragMode?: 'snap' | 'free';
+  dragMode?: CarouselDragMode;
   wheel?: boolean;
   containerRef?: RefObject<HTMLElement | null>;
   navigationRequest?: number;
@@ -117,6 +118,7 @@ export function useCarouselController({
     position: number;
     offset?: number;
     duration?: number;
+    velocity?: number;
   } | null>(null);
   const releasedGestureRef = useRef(false);
   const freeMotionRef = useRef(false);
@@ -157,7 +159,31 @@ export function useCarouselController({
     vertical: y,
     onDrag: handleDrag,
     onStart: () => {
-      cancelWheel(true);
+      const catchMotion =
+        dragMode === 'free-snap' && (isMoving || draggingRef.current);
+      // Transfer the live wheel position to the pointer without queuing a snap
+      // that would cancel this new pointer when its cursor request commits.
+      cancelWheel(dragMode !== 'free-snap');
+      if (catchMotion) {
+        animatedOffset.stop();
+        cancelSettlement();
+        dragOffsetRef.current = animatedOffset.get();
+        dragOverflowRef.current = 0;
+        dragAnchorRef.current = getDragAnchor(
+          projectionRef.current,
+          -dragOffsetRef.current,
+          bounds,
+          snapLimit
+        );
+        dragDirectionRef.current = 0;
+        dragTargetRef.current = null;
+        releasedGestureRef.current = false;
+        draggingRef.current = true;
+        activeInputRef.current = 'drag';
+        setIsMoving(true);
+        setSettledCursor(null);
+        return;
+      }
       if (
         dragMode === 'free' &&
         freeMotionRef.current &&
@@ -167,6 +193,10 @@ export function useCarouselController({
         dragOffsetRef.current = animatedOffset.get();
         handleDrag({ down: false, movement: 0, direction: 0, velocity: 0 });
       }
+    },
+    onEnd: () => {
+      if (dragMode === 'free-snap' && draggingRef.current)
+        releaseFree(-animatedOffset.get(), 0, 0, 'drag');
     },
   });
 
@@ -263,7 +293,7 @@ export function useCarouselController({
   }, [animatedOffset]);
 
   const startMotion = useCallback(
-    (offset: number, freeDuration?: number) => {
+    (offset: number, freeDuration?: number, velocity?: number) => {
       cancelSettlement();
       freeMotionRef.current = freeDuration !== undefined;
       setIsMoving(true);
@@ -307,7 +337,8 @@ export function useCarouselController({
               }
             );
           },
-        }
+        },
+        velocity
       );
     },
     [animatedOffset, cancelSettlement, settleMotion, updateWindow]
@@ -499,7 +530,8 @@ export function useCarouselController({
           acceptTarget && target.offset !== undefined
             ? target.offset
             : -projection.position + Math.max(0, projection.cursor - snapLimit),
-          acceptTarget ? target.duration : undefined
+          acceptTarget ? target.duration : undefined,
+          acceptTarget ? target.velocity : undefined
         );
       }
       hasCommittedRef.current = true;
@@ -528,7 +560,10 @@ export function useCarouselController({
       itemSize,
       dragBounds,
       motionConfigRef.current.duration !== 0 &&
-        !motionEnvironment.reducedMotion()
+        !motionEnvironment.reducedMotion(),
+      dragMode === 'free-snap'
+        ? { step: slidesToScroll ?? 1, origin: dragAnchorRef.current }
+        : undefined
     );
     const anchor = getDragAnchor(
       projection,
@@ -541,7 +576,14 @@ export function useCarouselController({
       cursor: targetCursor,
       position: anchor,
       offset: -target.position,
-      duration: target.duration,
+      ...(dragMode === 'free-snap'
+        ? {
+            velocity:
+              motionConfigRef.current.duration === undefined
+                ? Math.max(-3, Math.min(3, velocity)) / itemSize
+                : 0,
+          }
+        : { duration: target.duration }),
     };
     const blocked = Math.abs(target.position + dragOffsetRef.current) < 1e-8;
     if (movement || !blocked)
@@ -572,7 +614,7 @@ export function useCarouselController({
   }: CarouselDrag) {
     if (canceled) {
       if (draggingRef.current) {
-        if (dragMode === 'free')
+        if (dragMode !== 'snap')
           releaseFree(-animatedOffset.get(), 0, 0, source);
         else reconcileToCursor();
       }
@@ -605,7 +647,7 @@ export function useCarouselController({
     if (down)
       dragOverflowRef.current =
         source === 'drag' ? Math.max(0, rawPosition - position) : 0;
-    if (dragMode === 'free' && !down) {
+    if (dragMode !== 'snap' && !down) {
       releaseFree(
         position,
         source === 'wheel' ? 0 : (velocity ?? 0),

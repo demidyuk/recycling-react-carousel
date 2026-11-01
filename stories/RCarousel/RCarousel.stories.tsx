@@ -24,6 +24,7 @@ import {
   LargeJumpsExample,
 } from './Examples.js';
 import { InfiniteLoadingExample } from './InfiniteLoadingExample.js';
+import { TimePickerExample } from './TimePickerExample.js';
 import {
   numberedSource,
   paginationSource,
@@ -32,6 +33,7 @@ import {
   expandableSource,
   collectionSource,
   infiniteSource,
+  timePickerSource,
 } from './storySources.js';
 
 const describe = (story: string, code: string) => ({
@@ -93,7 +95,7 @@ const meta = {
     },
     trimEnd: { control: 'boolean', type: 'boolean' },
     drag: { control: 'boolean', type: 'boolean' },
-    dragMode: { control: 'radio', options: ['snap', 'free'] },
+    dragMode: { control: 'radio', options: ['snap', 'free', 'free-snap'] },
     wheel: { control: 'boolean', type: 'boolean' },
     swipeThreshold: {
       control: 'text',
@@ -191,10 +193,7 @@ export const Basic: Story = {
   name: 'Basic dragging',
   render: BasicExample,
   args: { drag: true, swipeThreshold: '30px' },
-  ...describe(
-    'Drag or swipe between slides without a controller.',
-    numberedSource('', false)
-  ),
+  ...describe('Drag or swipe between slides.', numberedSource('', false)),
 };
 
 export const Controlled: Story = {
@@ -406,4 +405,21 @@ export const InfiniteLoading: Story = {
     'Browse three slides at a time. A loading card inside the carousel is replaced in place when the next batch arrives.',
     infiniteSource
   ),
+};
+
+export const TimePicker: Story = {
+  name: 'Time picker',
+  render: TimePickerExample,
+  args: {
+    axis: 'vertical',
+    mode: 'loop',
+    slidesPerView: 9,
+    snapAlign: 'center',
+    gap: 0,
+    wheel: true,
+    dragMode: 'free-snap',
+    crossAxisSize: 'container',
+    style: { height: 360 },
+  },
+  ...describe('Two looping wheels select hours and minutes.', timePickerSource),
 };

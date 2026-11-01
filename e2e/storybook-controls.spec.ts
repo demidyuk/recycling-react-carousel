@@ -14,8 +14,8 @@ async function publicStories(page: Page): Promise<string[]> {
 const controlRow = (page: Page, name: string) =>
   page.getByRole('row').filter({ has: page.getByText(name, { exact: true }) });
 
-async function openControls(page: Page, story: string) {
-  await page.goto(`/?path=/story/${story}`);
+async function openControls(page: Page, story: string, args = '') {
+  await page.goto(`/?path=/story/${story}&args=${encodeURIComponent(args)}`);
   await page
     .frameLocator('#storybook-preview-iframe')
     .getByTestId('carousel')
@@ -204,5 +204,71 @@ test('numeric and auto slide counts remain editable across presets', async ({
         );
       expect(Math.max(...sizes)).toBeLessThanOrEqual(280);
     }
+  }
+});
+
+test('time picker selection bands follow live spacing, insets, and initial position Controls', async ({
+  page,
+}) => {
+  const carousel = await openControls(page, 'rcarousel--time-picker');
+  const preview = page.frameLocator('#storybook-preview-iframe');
+  const position = controlRow(page, 'defaultIndex');
+  await position
+    .getByRole('button', { name: 'Set number', exact: true })
+    .click();
+  await position.getByRole('spinbutton').fill('4');
+  await expect(preview.getByTestId('selected-time')).toHaveText('04:04');
+  await controlRow(page, 'gap').getByRole('spinbutton').fill('16');
+  await controlRow(page, 'insetStart').getByRole('textbox').fill('28px');
+  await expect
+    .poll(() =>
+      carousel.evaluate((root) => {
+        const row = root.querySelector<HTMLElement>(
+          '[data-picker-option="4"]'
+        )!;
+        const column = root.parentElement!;
+        const wheels = column.parentElement!;
+        const start = parseFloat(getComputedStyle(wheels, '::before').height);
+        const end =
+          root.getBoundingClientRect().height -
+          parseFloat(getComputedStyle(wheels, '::after').height);
+        const bounds = root.getBoundingClientRect();
+        const option = row.getBoundingClientRect();
+        return Math.max(
+          Math.abs(end - start - option.height * 1.4),
+          Math.abs(bounds.y + (start + end) / 2 - option.y - option.height / 2)
+        );
+      })
+    )
+    .toBeLessThan(1);
+});
+
+test('changing slide alignment preserves the gap between visible slides', async ({
+  page,
+}) => {
+  const carousel = await openControls(
+    page,
+    'rcarousel--loop',
+    'slidesPerView:2'
+  );
+  await controlRow(page, 'gap').getByRole('spinbutton').fill('16');
+  for (const alignment of ['center', 'end', 'start', 'stretch']) {
+    await controlRow(page, 'slideAlign')
+      .getByRole('radio', { name: alignment, exact: true })
+      .check();
+    await expect
+      .poll(() =>
+        carousel.evaluate((root) => {
+          const cards = Array.from(
+            root.querySelectorAll(
+              ':scope > [data-carousel-slide]:not([inert]) [data-item-index]'
+            ),
+            (card) => card.getBoundingClientRect()
+          ).sort((a, b) => a.left - b.left);
+          if (cards.length !== 2) return Infinity;
+          return cards[1].left - cards[0].right;
+        })
+      )
+      .toBeCloseTo(16, 1);
   }
 });

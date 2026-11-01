@@ -248,3 +248,115 @@ export function Example() {
     </button>
   </>;
 }`;
+
+export const timePickerSource = `import { useEffect, useRef, useState } from 'react';
+import RCarousel, { useCarousel } from 'recycling-react-carousel';
+
+const hours = Array.from({ length: 24 }, (_, value) => value);
+const minutes = Array.from({ length: 60 }, (_, value) => value);
+
+function Wheel({ values, initial, label, unit }: {
+  values: number[]; initial: number; label: string; unit: string;
+}) {
+  const carousel = useCarousel();
+  const column = useRef<HTMLDivElement>(null);
+  const current = useRef(initial);
+  const [selected, setSelected] = useState(initial);
+
+  useEffect(() => {
+    let anchor: number | undefined;
+    let size: number | undefined;
+    return carousel.subscribeMotion(motion => {
+      const surface = column.current;
+      if (!surface) return;
+      const radius = motion.slidePitch / (2 * Math.tan(Math.PI / 18));
+      const side = label === 'Hours' ? 1 : -1;
+      if (anchor !== motion.anchor) {
+        anchor = motion.anchor;
+        surface.style.setProperty('--anchor', anchor + 'px');
+        surface.parentElement?.style.setProperty('--anchor', anchor + 'px');
+      }
+      if (size !== motion.slideSize) {
+        size = motion.slideSize;
+        surface.parentElement?.style.setProperty('--band-size', size * 1.4 + 'px');
+      }
+      let nearest = { value: initial, distance: Infinity };
+      for (const slide of motion.slides) {
+        const face = slide.element.querySelector<HTMLElement>('[data-number]');
+        if (!face) continue;
+        if (Math.abs(slide.distance) < nearest.distance)
+          nearest = { value: slide.index, distance: Math.abs(slide.distance) };
+        const angle = -slide.distance * 20;
+        const visible = Math.abs(angle) < 85;
+        const visibility = visible ? 'visible' : 'hidden';
+        if (face.style.visibility !== visibility) face.style.visibility = visibility;
+        if (!visible) continue;
+        // Compensate for the carousel's flat positioning, then draw a cylinder.
+        const offset = -slide.distance * motion.slidePitch;
+        face.style.transformOrigin = 'calc(50% + ' + side * 130 + 'px) center';
+        face.style.transform = 'translateX(' + side * 27 + 'px) translateY(' + offset + 'px) perspective(1000px) translateZ(' + radius + 'px) rotateX(' + angle + 'deg) translateZ(' + radius + 'px)';
+      }
+      if (nearest.value !== current.current) {
+        current.current = nearest.value;
+        setSelected(nearest.value);
+      }
+    });
+  }, [carousel, initial, label]);
+
+  return <div ref={column} className="time-column">
+    <RCarousel controller={carousel} defaultIndex={initial}
+      axis="vertical" mode="loop" slidesPerView={9} snapAlign="center" gap={0}
+      dragMode="free-snap" wheel crossAxisSize="container"
+      style={{ height: 360, width: '100%' }}
+      role="spinbutton" aria-roledescription="picker wheel" aria-label={label}
+      aria-valuemin={0} aria-valuemax={values.length - 1}
+      aria-valuenow={selected} aria-valuetext={selected + ' ' + label.toLowerCase()}
+      tabIndex={0} items={values} getItemKey={value => value}
+      onKeyDown={event => {
+        if (event.altKey || event.ctrlKey || event.metaKey) return;
+        switch (event.key) {
+          case 'ArrowUp': case 'ArrowRight': carousel.next(); break;
+          case 'ArrowDown': case 'ArrowLeft': carousel.prev(); break;
+          case 'PageUp': carousel.moveBy(5); break;
+          case 'PageDown': carousel.moveBy(-5); break;
+          case 'Home': carousel.goTo(0); break;
+          case 'End': carousel.goTo(values.length - 1); break;
+          default: return;
+        }
+        event.preventDefault();
+      }}
+      onClick={event => {
+        const faces = Array.from(event.currentTarget.querySelectorAll<HTMLElement>('[data-number]'))
+          .filter(face => face.style.visibility === 'visible');
+        const distance = (face: HTMLElement) => {
+          const box = face.getBoundingClientRect();
+          return Math.abs(box.y + box.height / 2 - event.clientY);
+        };
+        const target = faces.sort((a, b) => distance(a) - distance(b))[0];
+        if (target) carousel.goTo(Number(target.dataset.number));
+      }}
+      renderItem={value => <span className="time-number" data-number={value}
+        aria-hidden="true">{value}</span>} />
+    <span className={'time-unit' + (unit === 'min' ? ' time-minute-unit' : '')}
+      aria-hidden="true">{unit}</span>
+  </div>;
+}
+
+export function Example() {
+  return <div className="time-picker">
+    <Wheel values={hours} initial={12} label="Hours" unit="hours" />
+    <Wheel values={minutes} initial={0} label="Minutes" unit="min" />
+    <style>{\`
+      .time-picker { -webkit-user-select: none; user-select: none; --anchor: 180px; --band-size: 56px; position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); max-width: 480px; margin: auto; font-family: system-ui, sans-serif; color: #303038; }
+      .time-picker::before, .time-picker::after { content: ''; position: absolute; z-index: 4; left: 0; right: 0; pointer-events: none; }
+      .time-picker::before { height: calc(var(--anchor) - var(--band-size) / 2); top: -0.5px; border-bottom: 1px solid #bfc1c7; background: linear-gradient(to top, #ffffffa6, #fff); }
+      .time-picker::after { height: calc(100% - var(--anchor) - var(--band-size) / 2); bottom: -0.5px; border-top: 1px solid #bfc1c7; background: linear-gradient(to bottom, #ffffffa6, #fff); }
+      .time-column { position: relative; min-width: 0; isolation: isolate; }
+      .time-column:has(:focus-visible) { outline: 2px solid #3568d4; outline-offset: 4px; border-radius: 8px; }
+      .time-number { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 30px; font-variant-numeric: tabular-nums; line-height: 1; backface-visibility: hidden; visibility: hidden; }
+      .time-unit { position: absolute; z-index: 5; top: var(--anchor, 50%); left: calc(50% + 32px); transform: translateY(-50%); font-size: 22px; font-weight: 600; line-height: 1; pointer-events: none; }
+      .time-minute-unit { margin-left: 22px; }
+      @media (max-width: 600px) { .time-number { font-size: 26px; } .time-unit { left: calc(50% + 26px); font-size: 18px; } }
+    \`}</style>
+  </div>;
+}`;

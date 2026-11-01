@@ -2,7 +2,7 @@
 
 The scalar spring's numeric integration and configuration compatibility are
 adapted from [react-spring 10.1.2](https://github.com/pmndrs/react-spring/tree/v10.1.2), used
-under the MIT license. No react-spring runtime package is required.
+under the MIT license.
 
 MIT License
 

@@ -29,6 +29,12 @@ import type { CarouselChangeReason } from './apiTypes.js';
 import type { CarouselLayout } from './helpers/layout.js';
 import { interpolateSize } from './helpers/interpolateSize.js';
 import { cancelCarouselWheel } from './hooks/useCarouselWheel.js';
+import {
+  bindControllerMotion,
+  publishControllerMotion,
+  type CarouselController,
+} from '../hooks/useCarousel.js';
+import type { CarouselDragMode, CarouselSlideMotion } from './apiTypes.js';
 
 // Consumers may observe input without replacing the handlers that keep the
 // gesture controller in sync. A filtered drag click must not reach their code.
@@ -176,7 +182,8 @@ interface ViewportProps extends Omit<
   slideStyle?: React.CSSProperties;
   slideClassName?: string;
   drag: boolean;
-  dragMode: 'snap' | 'free';
+  dragMode: CarouselDragMode;
+  motionController?: CarouselController;
   wheel: boolean;
   navigationRequest: number;
   onFocusAlign: () => void;
@@ -221,6 +228,7 @@ export const CarouselViewport = /*#__PURE__*/ forwardRef(
       className,
       drag,
       dragMode,
+      motionController,
       wheel,
       navigationRequest,
       onFocusAlign,
@@ -354,6 +362,47 @@ export const CarouselViewport = /*#__PURE__*/ forwardRef(
       onCursorRequest,
     });
 
+    useIsomorphicLayoutEffect(() => {
+      if (!motionController) return;
+      const unbind = bindControllerMotion(motionController, () => {
+        const container = containerRef.current;
+        if (!ready || !container || !isProjectionCurrent()) return null;
+        const offset = animatedOffset.get();
+        const slides: CarouselSlideMotion[] = [];
+        let nearest: CarouselSlideMotion | undefined;
+        for (const slot of slots) {
+          if (!slot.renderable) continue;
+          const element = container.children[slot.slotIndex]
+            ?.firstElementChild as HTMLElement | null;
+          if (!element) continue;
+          const slide = {
+            element,
+            index: getLocalIndex(slot.globalSlideIndex, childrenCount),
+            absoluteIndex: slot.globalSlideIndex,
+            distance: slot.basePosition + offset,
+          };
+          slides.push(slide);
+          if (!nearest || Math.abs(slide.distance) < Math.abs(nearest.distance))
+            nearest = slide;
+        }
+        return {
+          position: nearest ? nearest.absoluteIndex - nearest.distance : 0,
+          axis,
+          slideSize: itemSizePx,
+          slidePitch: itemStepPx,
+          anchor: anchor + itemSizePx / 2,
+          slides,
+        };
+      });
+      const unsubscribe = animatedOffset.subscribe(() =>
+        publishControllerMotion(motionController)
+      );
+      return () => {
+        unsubscribe();
+        unbind();
+      };
+    });
+
     // A carrier can keep its ref and key while React replaces its content.
     // Refresh committed dimensions before paint, rather than waiting for RO.
     useIsomorphicLayoutEffect(() => {
@@ -361,11 +410,11 @@ export const CarouselViewport = /*#__PURE__*/ forwardRef(
     });
 
     const freePosition =
-      dragMode === 'free'
+      dragMode !== 'snap'
         ? projection.cursor - projection.position - animatedOffset.get()
         : 0;
     const aligned =
-      dragMode !== 'free' ||
+      dragMode === 'snap' ||
       Math.abs(freePosition - Math.min(resolvedCursor, snapLimit)) < 1e-8;
     useIsomorphicLayoutEffect(() => {
       onViewportState?.({
@@ -577,7 +626,7 @@ export const CarouselViewport = /*#__PURE__*/ forwardRef(
           }
         },
         onScroll: (event) => {
-          if (dragMode === 'free' && event.target === event.currentTarget) {
+          if (dragMode !== 'snap' && event.target === event.currentTarget) {
             event.currentTarget.scrollLeft = 0;
             event.currentTarget.scrollTop = 0;
           }
@@ -604,7 +653,7 @@ export const CarouselViewport = /*#__PURE__*/ forwardRef(
         ref={containerRef}
         className={classNames([
           styles.container,
-          dragMode === 'free' && styles.freeViewport,
+          dragMode !== 'snap' && styles.freeViewport,
           canDrag && (x ? styles.touchActionPanY : styles.touchActionPanX),
           styles.w100,
           !contentSized && styles.h100,
@@ -673,6 +722,8 @@ export const CarouselViewport = /*#__PURE__*/ forwardRef(
                 x ? styles.h100 : styles.w100,
                 styles.presentation,
                 x ? styles.presentationHorizontal : styles.presentationVertical,
+                slideAlign === 'center' && styles.alignCenter,
+                slideAlign === 'end' && styles.alignEnd,
               ])}
             >
               <SlideWrapper
@@ -686,10 +737,6 @@ export const CarouselViewport = /*#__PURE__*/ forwardRef(
                   x ? styles.w100 : styles.h100,
                   slideAlign === 'stretch' && (x ? styles.h100 : styles.w100),
                   child === undefined && styles.displayNone,
-                  slideAlign === 'center' &&
-                    (x ? styles.alignCenterY : styles.alignCenterX),
-                  slideAlign === 'end' &&
-                    (x ? styles.alignEndY : styles.alignEndX),
                   slideClassName,
                 ])}
               >

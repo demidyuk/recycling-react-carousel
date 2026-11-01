@@ -1,6 +1,5 @@
 // @vitest-environment node
 
-import React from 'react';
 import { renderToString } from 'react-dom/server';
 import { expect, test, vi } from 'vitest';
 import { RCarousel } from '../RCarousel.js';
@@ -33,6 +32,21 @@ test('consumer pagination renders an unavailable state without browser globals',
     );
   }
   expect(renderToString(<Example />)).toContain('disabled=""');
+});
+
+test('momentum configuration and motion subscriptions are safe without browser globals', () => {
+  const listener = vi.fn();
+  function Example() {
+    const controller = useCarousel();
+    controller.subscribeMotion(listener)();
+    return (
+      <RCarousel controller={controller} dragMode="free-snap">
+        <div>First</div>
+      </RCarousel>
+    );
+  }
+  expect(renderToString(<Example />)).toContain('First');
+  expect(listener).not.toHaveBeenCalled();
 });
 
 test('lazily renders items without browser globals at the requested initial position', () => {

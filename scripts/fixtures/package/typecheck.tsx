@@ -8,6 +8,9 @@ import Carousel, {
   type CarouselAnimation,
   type CarouselChangeReason,
   type CarouselLength,
+  type CarouselDragMode,
+  type CarouselMotion,
+  type CarouselSlideMotion,
 } from 'recycling-react-carousel';
 import { createElement, createRef, memo } from 'react';
 import type { resolveAnimation, resolveLength } from 'recycling-react-carousel';
@@ -46,7 +49,7 @@ const length: CarouselLength = '30%';
 const root = createRef<HTMLDivElement>();
 const props: RCarouselProps = {
   mode: 'forward-loop',
-  dragMode: 'free',
+  dragMode: 'free-snap' satisfies CarouselDragMode,
   wheel: true,
   axis: 'vertical',
   slidesPerView: 1.2,
@@ -85,6 +88,22 @@ function Consumer() {
   );
 }
 function checkNavigation(controller: ReturnType<typeof useCarousel>) {
+  const unsubscribe: () => void = controller.subscribeMotion(
+    (motion: CarouselMotion) => {
+      const position: number = motion.position;
+      for (const slide of motion.slides) {
+        const frame: CarouselSlideMotion = slide;
+        const element: HTMLElement = frame.element;
+        element.style.opacity = String(
+          Math.max(0, 1 - Math.abs(frame.distance))
+        );
+        void position;
+        // @ts-expect-error frame values are read-only
+        slide.distance = 0;
+      }
+    }
+  );
+  unsubscribe();
   const index: number = controller.index;
   const absoluteIndex: number = controller.absoluteIndex;
   const move: void = controller.moveBy(1);
@@ -330,7 +349,6 @@ const invalidSnap: RCarouselProps = { snapAlign: 'end' };
 const invalidInset: RCarouselProps = { insetStart: '1rem' };
 void [invalidSnap, invalidInset];
 
-// Content-height interpolation is automatic, without a feature toggle.
 // @ts-expect-error height interpolation has no public toggle
 const invalidHeightToggle = <RCarousel animateHeight={false} />;
 void invalidHeightToggle;

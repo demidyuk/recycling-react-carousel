@@ -73,7 +73,8 @@ export class ScalarMotion {
   declare start: (
     target: number,
     config: MotionConfig,
-    callbacks: MotionCallbacks
+    callbacks: MotionCallbacks,
+    velocity?: number
   ) => void;
   declare private tick: () => void;
 
@@ -108,7 +109,7 @@ export class ScalarMotion {
       beforePublish?.();
       this.publish();
     };
-    this.start = (target, config, callbacks) => {
+    this.start = (target, config, callbacks, velocity) => {
       const wasRunning = this.running;
       // Retarget the live channel without discarding its pending frame or time.
       // Pointer events can arrive immediately before every animation frame.
@@ -121,7 +122,8 @@ export class ScalarMotion {
       };
       this.goal = target;
       this.from = this.position;
-      if (!wasRunning) this.velocity = 0;
+      if (velocity !== undefined) this.velocity = velocity;
+      else if (!wasRunning) this.velocity = 0;
       this.elapsed = 0;
       this.onChange = callbacks.onChange;
       this.onRest = callbacks.onRest;
@@ -156,7 +158,10 @@ export class ScalarMotion {
     // Recycling commits the content and base coordinate before DOM subscribers
     // use this frame's offset. React only renders when the integer window moves.
     this.onChange?.();
-    this.listeners.forEach((listener) => listener());
+    // Subscribers can change subscriptions while handling a frame. New listeners
+    // belong to the next publication, not the Set iterator's current traversal.
+    for (const listener of [...this.listeners])
+      if (this.listeners.has(listener)) listener();
   }
 
   private finish(value: number) {

@@ -44,3 +44,37 @@ test('disabled and reduced motion settle at the release point without inertia', 
     duration: 0,
   });
 });
+
+test('momentum snapping selects the projected stop', () => {
+  const snap = { step: 1, origin: 0 };
+  expect(freeMotion(2.25, -1, 250, loop, true, snap)).toEqual({
+    position: 3,
+    duration: 250,
+  });
+  expect(freeMotion(-2.25, 1, 250, loop, true, snap)).toEqual({
+    position: -3,
+    duration: 250,
+  });
+  expect(freeMotion(2.25, 0, 250, loop, true, snap)).toEqual({
+    position: 2,
+    duration: 220,
+  });
+  expect(freeMotion(2.25, -3, 250, loop, false, snap)).toEqual({
+    position: 2,
+    duration: 0,
+  });
+});
+
+test('momentum snapping respects step origin and fractional terminal stops', () => {
+  expect(
+    freeMotion(4.3, 0, 250, loop, true, { step: 2, origin: 1 }).position
+  ).toBe(5);
+  expect(
+    freeMotion(2.4, -1, 250, { min: 0, max: 2.5 }, true, { step: 2, origin: 0 })
+      .position
+  ).toBe(2.5);
+  expect(
+    freeMotion(-0.3, 0, 250, { min: 0, max: 2.5 }, true, { step: 1, origin: 0 })
+      .position
+  ).toBe(0);
+});

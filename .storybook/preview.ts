@@ -20,6 +20,7 @@ const preview: Preview = {
             'Auto sizing',
             'Container breakpoints',
             'Vertical axis',
+            'Time picker',
             'Free dragging',
             'Wheel input',
             'Vertical wheel',

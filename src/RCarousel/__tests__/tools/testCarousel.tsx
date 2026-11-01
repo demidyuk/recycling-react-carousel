@@ -1,4 +1,3 @@
-import React from 'react';
 import RCarousel, { type RCarouselProps } from '../../../index.js';
 
 export function getTestSlides(count: number) {
