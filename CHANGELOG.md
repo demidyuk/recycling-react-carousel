@@ -1,3 +1,16 @@
+# [2.0.0](https://github.com/demidyuk/recycling-react-carousel/compare/v1.3.2...v2.0.0) (2026-11-01)
+
+
+### Features
+
+* introduce the v2 carousel API ([533ebf5](https://github.com/demidyuk/recycling-react-carousel/commit/533ebf59ec4631d459b396290ffedbfe80b2a8e2))
+
+
+### BREAKING CHANGES
+
+* Replace legacy hooks and configuration with useCarousel
+and component props. Require React 18 or 19 and Node.js >=22.18.0.
+
 # [2.0.0-alpha.3](https://github.com/demidyuk/recycling-react-carousel/compare/v2.0.0-alpha.2...v2.0.0-alpha.3) (2026-11-01)
 
 
