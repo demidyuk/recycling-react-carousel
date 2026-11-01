@@ -1,6 +1,6 @@
 {
   "name": "recycling-react-carousel",
-  "version": "2.0.0-alpha.1",
+  "version": "2.0.0-alpha.2",
   "description": "A React carousel that reuses slide containers for large collections",
   "license": "MIT",
   "author": "Denis Demidyuk <denisdemidyuk@gmail.com>",

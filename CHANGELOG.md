@@ -1,3 +1,10 @@
+# [2.0.0-alpha.2](https://github.com/demidyuk/recycling-react-carousel/compare/v2.0.0-alpha.1...v2.0.0-alpha.2) (2026-11-01)
+
+
+### Features
+
+* add momentum snapping and motion subscriptions ([9678626](https://github.com/demidyuk/recycling-react-carousel/commit/96786265ec33b3bbe26b6e2d9d37b3e8d30e842f))
+
 # [2.0.0-alpha.1](https://github.com/demidyuk/recycling-react-carousel/compare/v1.3.2...v2.0.0-alpha.1) (2026-11-01)
 
 
