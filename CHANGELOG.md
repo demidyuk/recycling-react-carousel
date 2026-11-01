@@ -1,3 +1,24 @@
+# [2.0.0-alpha.1](https://github.com/demidyuk/recycling-react-carousel/compare/v1.3.2...v2.0.0-alpha.1) (2026-11-01)
+
+
+* feat!: introduce the v2 carousel architecture and API ([b456bab](https://github.com/demidyuk/recycling-react-carousel/commit/b456bab90348752de8dd1a82c4afa88de4a8c2a5))
+* feat!: introduce the v2 carousel architecture and API ([2c41ce2](https://github.com/demidyuk/recycling-react-carousel/commit/2c41ce2755d229273e6222d16f5128d35201baaa))
+
+
+### Bug Fixes
+
+* let semantic-release configure npm authentication ([836e294](https://github.com/demidyuk/recycling-react-carousel/commit/836e2947be48c19e3b7346fad941d0fbdbcd0938))
+* restore alpha prereleases ([91df27a](https://github.com/demidyuk/recycling-react-carousel/commit/91df27afd707ceb3f81b9ac733af99cb329a9621))
+
+
+### BREAKING CHANGES
+
+* Replace legacy hooks and options with useCarousel and
+component configuration. Require Node >=22.18.0 and React 18 or 19.
+* Replace legacy hooks and configuration with useCarousel and
+component options including mode, axis, and animation. Require Node >=22.18.0
+and React 18 or 19.
+
 ## [1.3.2](https://github.com/demidyuk/recycling-react-carousel/compare/v1.3.1...v1.3.2) (2021-06-15)
 
 
