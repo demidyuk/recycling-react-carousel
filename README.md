@@ -3,7 +3,7 @@
 A React carousel with spring animation, momentum dragging, and responsive layouts.
 It recycles slide containers to keep the DOM small for large collections.
 
-[Live examples](https://demidyuk.github.io/recycling-react-carousel/docs/)
+[Live examples](https://demidyuk.github.io/recycling-react-carousel/)
 · [API reference](https://github.com/demidyuk/recycling-react-carousel/blob/master/docs/api.md)
 · [Usage guide](https://github.com/demidyuk/recycling-react-carousel/blob/master/docs/guide.md)
 

@@ -1,6 +1,6 @@
 # Usage guide
 
-[README](../README.md) · [API reference](api.md) · [Live examples](https://demidyuk.github.io/recycling-react-carousel/docs/)
+[README](../README.md) · [API reference](api.md) · [Live examples](https://demidyuk.github.io/recycling-react-carousel/)
 
 ## Controlled navigation
 

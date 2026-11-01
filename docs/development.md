@@ -102,6 +102,10 @@ After validation passes, pushes to `master` publish stable releases and pushes t
 change after 1.3.2 produces `2.0.0-alpha.1` on `alpha`. Pull requests run checks
 without publishing. Storybook deployment runs on pushes to `master`.
 
+The workflow deploys Storybook to `gh-pages:/docs`. GitHub Pages serves that folder
+at [the site root](https://demidyuk.github.io/recycling-react-carousel/), so public
+links must not add `/docs/` to the URL.
+
 Keep the release job's branch condition in `.github/workflows/main.yml` aligned
 with the branches configured in `.releaserc.json`.
 
