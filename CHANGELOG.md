@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/demidyuk/recycling-react-carousel/compare/v2.0.0...v2.0.1) (2026-11-01)
+
+
+### Bug Fixes
+
+* correct Storybook links ([6ec2b05](https://github.com/demidyuk/recycling-react-carousel/commit/6ec2b05c87fb14b6188b089141331147d764b434))
+
 # [2.0.0](https://github.com/demidyuk/recycling-react-carousel/compare/v1.3.2...v2.0.0) (2026-11-01)
 
 
