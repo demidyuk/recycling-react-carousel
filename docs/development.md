@@ -106,6 +106,10 @@ without publishing. Storybook deployment runs on pushes to `master`.
 Keep the release job's branch condition in `.github/workflows/main.yml` aligned
 with the branches configured in `.releaserc.json`.
 
+Let semantic-release configure npm authentication through `NPM_TOKEN`. Do not set
+`registry-url` in the release job's `actions/setup-node` step: its generated npm
+configuration can override semantic-release's token configuration.
+
 ## Editing conventions
 
 - Keep relative source imports suffixed with `.js` for emitted ESM and CommonJS
