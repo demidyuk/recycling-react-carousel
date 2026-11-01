@@ -99,7 +99,9 @@ export function InfiniteLoadingExample(args: RCarouselProps) {
                 data-testid="loading-spinner"
                 aria-hidden="true"
               />
-              <p>Loading more items…</p>
+              <p role="status" aria-label="Loading status">
+                Loading more items…
+              </p>
             </article>
           ) : (
             <SlideCard index={record.id - 1} count={crate.length} />
@@ -107,24 +109,6 @@ export function InfiniteLoadingExample(args: RCarouselProps) {
         }
       />
       <Footer controller={carousel} vertical={args.axis === 'vertical'} />
-      <div className={styles.loadingFooter}>
-        <div
-          className={styles.status}
-          role="status"
-          aria-label="Loading status"
-          aria-atomic="true"
-        >
-          <span>{loading ? 'Loading more items…' : 'Ready to load more'}</span>
-        </div>
-        <button
-          type="button"
-          className={styles.primaryButton}
-          disabled={loading}
-          onClick={loadMore}
-        >
-          Load more items
-        </button>
-      </div>
     </Demo>
   );
 }

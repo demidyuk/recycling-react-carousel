@@ -332,22 +332,6 @@
 .jumpForm .stat {
   margin-left: auto;
 }
-.loadingFooter {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding-top: 20px;
-  border-top: 1px solid var(--line);
-}
-.status {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  color: var(--muted);
-  font-size: 12px;
-}
 .loadingCard {
   justify-content: center;
   gap: 16px;

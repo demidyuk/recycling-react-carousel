@@ -233,19 +233,12 @@ export function Example() {
             border: '2px solid #d5e1fa', borderTopColor: '#3568d4',
             borderRadius: '50%', animation: 'loadingSpin 0.7s linear infinite',
           }} />
-          <p>Loading more items…</p>
+          <p role="status" aria-label="Loading status">Loading more items…</p>
         </article>
       ) : <article style={{ height: 280 }}>Slide {item.id}</article>} />
     <button {...carousel.getPrevButtonProps()}>Previous slide</button>
     <button {...carousel.getNextButtonProps()}>Next slide</button>
     <style>{'@keyframes loadingSpin { to { transform: rotate(360deg); } } @media (prefers-reduced-motion: reduce) { .loading-spinner { animation: none !important; } }'}</style>
-    <p role="status" aria-label="Loading status">
-      {loading ? 'Loading more items…' : 'Ready to load more'}
-    </p>
-    <button disabled={loading}
-      onClick={loadMore}>
-      Load more items
-    </button>
   </>;
 }`;
 

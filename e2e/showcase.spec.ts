@@ -619,12 +619,6 @@ test('infinite loading fetches successive pages without moving the current view 
     expect(
       await spinner.evaluate((node) => getComputedStyle(node).animationName)
     ).not.toBe('none');
-    await expect(
-      page.getByRole('button', {
-        name: 'Load more items',
-        exact: true,
-      })
-    ).toBeDisabled();
     const visible = visibleSlides(carousel).locator('[data-item-index]');
     const before = await visible.evaluateAll((cards) =>
       cards.map((card) => ({
@@ -636,7 +630,6 @@ test('infinite loading fetches successive pages without moving the current view 
     await expect(count).toHaveText(`${9 + batch * 6} items loaded`);
     await page.clock.runFor(400);
     await expect(count).toHaveText(`${15 + batch * 6} items loaded`);
-    await expect(status).toHaveText('Ready to load more');
     await expect(spinner).toHaveCount(0);
     await expect(carousel).toHaveAttribute('aria-busy', 'false');
     const after = await visible.evaluateAll((cards) =>
@@ -668,43 +661,43 @@ test('infinite loading completes a response without interrupting current navigat
   const carousel = await openStory(
     page,
     'rcarousel--infinite-loading',
-    'animation.type:duration;animation.duration:1500'
+    'defaultIndex:6;animation.type:duration;animation.duration:1500'
   );
   await page.clock.pauseAt(new Date('2026-10-31T00:01:00Z'));
-  await page
-    .getByRole('button', {
-      name: 'Load more items',
-      exact: true,
-    })
-    .click();
   await next(page).click();
-  await page.clock.runFor(899);
-  const target = carousel.locator('[data-item-index="1"]');
+  await page.clock.runFor(300);
+  await expect(carousel).toHaveAttribute('aria-busy', 'true');
+  const target = carousel.locator('[data-item-index="7"]');
   const before = (await target.boundingBox())!.x;
-  await page.clock.runFor(1);
+  const pitch = await target.evaluate(
+    (card) =>
+      card.closest('[data-carousel-slide]')!.getBoundingClientRect().width
+  );
+  await page.clock.runFor(1000);
   await expect(page.getByTestId('loaded-records')).toHaveText(
     '15 items loaded'
   );
-  expect(Math.abs((await target.boundingBox())!.x - before)).toBeLessThan(2);
-  await expect(page.getByRole('status', { name: 'Loading status' })).toHaveText(
-    'Ready to load more'
-  );
+  expect(
+    Math.abs((await target.boundingBox())!.x - (before - (pitch * 1000) / 1500))
+  ).toBeLessThan(2);
+  await expect(carousel).toHaveAttribute('aria-busy', 'false');
+  const afterResponse = (await target.boundingBox())!.x;
   await page.clock.runFor(100);
   const moving = (await target.boundingBox())!.x;
-  expect(moving).toBeLessThan(before - 2);
+  expect(moving).toBeLessThan(afterResponse - 2);
   expect(moving).toBeGreaterThan((await carousel.boundingBox())!.x + 2);
   await page.clock.runFor(600);
   await expect(
-    visibleSlides(carousel).locator('[data-item-index="1"]')
+    visibleSlides(carousel).locator('[data-item-index="7"]')
   ).toBeVisible();
   await previous(page).click();
   await page.clock.runFor(1600);
   await expect(
-    visibleSlides(carousel).locator('[data-item-index="0"]')
+    visibleSlides(carousel).locator('[data-item-index="6"]')
   ).toBeVisible();
 });
 
-test('infinite loading supports repeated manual requests and keyboard use with reduced motion', async ({
+test('infinite loading fetches successive batches through keyboard navigation with reduced motion', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 1000 });
@@ -712,17 +705,14 @@ test('infinite loading supports repeated manual requests and keyboard use with r
   await page.clock.install({ time: new Date('2026-10-31T00:00:00Z') });
   const carousel = await open(page, 'infinite-loading');
   await page.clock.pauseAt(new Date('2026-10-31T00:01:00Z'));
-  const more = page.getByRole('button', {
-    name: 'Load more items',
-    exact: true,
-  });
-  await more.focus();
+  const forward = next(page);
+  await forward.focus();
   expect(
-    await more.evaluate((button) => getComputedStyle(button).outlineStyle)
+    await forward.evaluate((button) => getComputedStyle(button).outlineStyle)
   ).toBe('solid');
-  await page.keyboard.press('Enter');
-  await expect(more).toBeDisabled();
-  for (let index = 0; index < 7; index++) await next(page).click();
+  for (let index = 0; index < 7; index++) await page.keyboard.press('Enter');
+  await expect(forward).toBeDisabled();
+  await expect(carousel).toHaveAttribute('aria-busy', 'true');
   const spinner = visibleSlides(carousel).getByTestId('loading-spinner');
   await expect(spinner).toBeInViewport();
   expect(
@@ -734,19 +724,19 @@ test('infinite loading supports repeated manual requests and keyboard use with r
   await expect(page.getByTestId('loaded-records')).toHaveText(
     '15 items loaded'
   );
-  await expect(more).toBeEnabled();
-  await more.evaluate((button: HTMLButtonElement) => {
-    button.click();
-    button.click();
-    button.click();
-  });
+  await expect(forward).toBeEnabled();
+  await forward.focus();
+  await expect(forward).toBeFocused();
+  for (let index = 0; index < 6; index++) await page.keyboard.press('Enter');
+  await expect(forward).toBeDisabled();
+  await expect(carousel).toHaveAttribute('aria-busy', 'true');
   await page.clock.runFor(1000);
   await expect(page.getByTestId('loaded-records')).toHaveText(
     '21 items loaded'
   );
   await expect(visibleSlides(carousel)).toHaveCount(3);
   await expect(
-    visibleSlides(carousel).locator('[data-item-index="7"]')
+    visibleSlides(carousel).locator('[data-item-index="13"]')
   ).toBeVisible();
   await expect(carousel.locator(':scope > [data-carousel-slide]')).toHaveCount(
     9
@@ -793,9 +783,7 @@ for (const axis of ['horizontal', 'vertical'] as const) {
       await expect(page.getByTestId('loaded-records')).toHaveText(
         '15 items loaded'
       );
-      await expect(
-        page.getByRole('status', { name: 'Loading status' })
-      ).toHaveText('Ready to load more');
+      await expect(carousel).toHaveAttribute('aria-busy', 'false');
       await expect(carousel.getByTestId('loading-spinner')).toHaveCount(0);
       expect(Math.abs((await coordinate()) - before)).toBeLessThan(0.5);
       // The same held pointer keeps moving from the displayed position. Old

@@ -80,9 +80,9 @@ parent, keyed by item ID. The large collection example renders a small pool and
 displays its slot count. Infinite loading keeps a loading card at the end of its
 items. The next batch replaces that card in place, and a new loading card follows
 the batch. Keeping this end card mounted avoids changing geometry when a request
-starts. Loading starts when the end card enters the viewport or through Load more
-items. It allows one request at a time, cancels timers on unmount, and appends
-results during dragging or animation while keeping the current view.
+starts. Loading starts when the end card enters the viewport. It allows one
+request at a time, cancels timers on unmount, and appends results during dragging
+or animation while keeping the current view.
 The time picker demonstrates `free-snap`, wheel input, keyboard controls, and
 `subscribeMotion` effects. Shared configuration Controls remain available.
 See the [usage guide](guide.md#controlled-navigation) for controlled position props.
