@@ -38,7 +38,7 @@ function InputExample({
     [count]
   );
   return (
-    <main style={{ padding: 20 }}>
+    <main style={{ padding: 20, WebkitUserSelect: 'none', userSelect: 'none' }}>
       <div style={{ height: 120 }}>Page scrolling before the carousel</div>
       <nav aria-label="Input navigation">
         <button

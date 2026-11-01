@@ -151,7 +151,7 @@ const meta = {
     crossAxisSize: 'container',
     slideAlign: 'stretch',
     gap: 16,
-    style: { height: 250, userSelect: 'none' },
+    style: { height: 250 },
     itemCount: 6,
     cardContent: 'simple',
     motion: 'spring',

@@ -3,6 +3,8 @@
   min-width: 0;
   margin: 0 auto;
   padding: 24px;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .header h1 {

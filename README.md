@@ -1,7 +1,7 @@
 # recycling-react-carousel
 
-A React carousel that reuses a small pool of slide containers, even for large
-collections. Supports dragging, responsive layouts, vertical slides, and loops.
+A React carousel with spring animation, momentum dragging, and responsive layouts.
+It recycles slide containers to keep the DOM small for large collections.
 
 [Live examples](https://demidyuk.github.io/recycling-react-carousel/docs/)
 · [API reference](https://github.com/demidyuk/recycling-react-carousel/blob/master/docs/api.md)
