@@ -1,0 +1,156 @@
+.example {
+  width: min(100%, 960px);
+  min-width: 0;
+  margin: 0 auto;
+  padding: 24px;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.header h1 {
+  margin: 0 0 8px;
+  font-size: clamp(22px, 4vw, 30px);
+}
+
+.header p {
+  max-width: 78ch;
+  margin: 0 0 20px;
+  color: #526175;
+  line-height: 1.6;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.controls button,
+.controls select {
+  max-width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid #cdd6e2;
+  border-radius: 8px;
+  color: inherit;
+  background: white;
+  font: inherit;
+  line-height: 1.25;
+}
+
+.selection {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+}
+
+.selection::after {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid #526175;
+  border-bottom: 1.5px solid #526175;
+  content: '';
+  pointer-events: none;
+  transform: translateY(-75%) rotate(45deg);
+}
+
+.selection label {
+  white-space: nowrap;
+}
+
+.selection select {
+  appearance: none;
+  min-width: 4.5rem;
+  padding-right: 36px;
+  cursor: pointer;
+}
+
+.controls button {
+  cursor: pointer;
+}
+
+.controls button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.controls :focus-visible {
+  outline: 3px solid #356ce0;
+  outline-offset: 2px;
+}
+
+.position {
+  margin: 12px 0 0;
+  color: #526175;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.position span {
+  margin: 0 6px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 100%;
+  min-width: 0;
+  overflow: hidden;
+  padding: 12px;
+  border: 1px solid #d9e0ea;
+  border-radius: 12px;
+  color: #18212f;
+  background: white;
+  text-align: center;
+}
+
+.card h2 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.card p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.card img {
+  width: 100%;
+  height: 64px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.card dl {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 4px 12px;
+  margin: 0;
+  font-size: 12px;
+}
+
+.card dd {
+  margin: 0;
+}
+
+.intrinsic {
+  height: auto;
+  min-height: 120px;
+  padding: 20px;
+}
+
+.tall {
+  min-height: 320px;
+}

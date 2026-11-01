@@ -1,19 +1,31 @@
 import { fireEvent } from '@testing-library/react';
 
-let _curEventTimeStamp = 1;
+export function swipe(
+  element: Element,
+  [fromX = 0, fromY = 0]: number[],
+  [toX = 0, toY = 0]: number[]
+) {
+  const pointer = {
+    pointerId: 1,
+    pointerType: 'touch',
+    isPrimary: true,
+    buttons: 1,
+  };
 
-function inc() {
-  return _curEventTimeStamp++;
-}
-
-export function swipe(element: Element, ...points: number[][]) {
-  fireEvent.pointerDown(element, { _curEventTimeStamp: inc() });
-  points.forEach(([clientX = 0, clientY = 0]) => {
-    fireEvent.pointerMove(element, {
-      clientX,
-      clientY,
-      _curEventTimeStamp: inc(),
-    });
+  fireEvent.pointerDown(element, {
+    ...pointer,
+    clientX: fromX,
+    clientY: fromY,
   });
-  fireEvent.pointerUp(element, { _curEventTimeStamp: inc() });
+  fireEvent.pointerMove(element, {
+    ...pointer,
+    clientX: toX,
+    clientY: toY,
+  });
+  fireEvent.pointerUp(element, {
+    ...pointer,
+    buttons: 0,
+    clientX: toX,
+    clientY: toY,
+  });
 }

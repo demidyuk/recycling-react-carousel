@@ -3,5 +3,10 @@
 .DS_Store
 node_modules
 .cache
+coverage
 dist
-test-config/setupPointerEvent.js
+playwright-report
+storybook-static
+storybook-internal-static
+storybook-test-static
+test-results

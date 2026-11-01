@@ -1,6 +1,8 @@
 .container {
   position: relative;
-  overflow: hidden;
+  /* Clipping must never create a native scroll offset when focus moves. */
+  overflow: clip;
+  display: flow-root;
 }
 
 .actor {
@@ -11,18 +13,6 @@
   display: inline-flex;
   flex-direction: column;
   box-sizing: border-box;
-}
-
-.child-wrapper.align-center-x {
-  position: absolute;
-  left: 50%;
-  transform: translate3d(-50%, 0, 0);
-}
-
-.child-wrapper.align-center-y {
-  position: absolute;
-  top: 50%;
-  transform: translate3d(0, -50%, 0);
 }
 
 .w-100 {
@@ -41,10 +31,26 @@
   touch-action: pan-y;
 }
 
-.user-select-none {
-  user-select: none;
-}
-
 .display-none {
   display: none !important;
+}
+
+.presentation {
+  display: flex;
+}
+
+.presentation-horizontal {
+  flex-direction: column;
+}
+
+.presentation-vertical {
+  flex-direction: row;
+}
+
+.align-center {
+  justify-content: center;
+}
+
+.align-end {
+  justify-content: flex-end;
 }

@@ -1,100 +1,195 @@
 name: main
-on: [push]
+
+on:
+  push:
+  pull_request:
+
 jobs:
-  build:
-    name: Build, lint, and test on Node ${{ matrix.node }} and ${{ matrix.os }}
+  validate:
+    name: Node ${{ matrix.node }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        node: ['14.x']
-        os: [ubuntu-20.04, windows-latest]
+        include:
+          - os: ubuntu-latest
+            node: '22.18'
+            full: false
+          - os: ubuntu-latest
+            node: '24'
+            full: true
+          - os: windows-latest
+            node: '24'
+            full: false
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v7
 
-      - name: Use Node ${{ matrix.node }}
-        uses: actions/setup-node@v1
+      - name: Set up Node
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node }}
+          cache: npm
 
-      - name: Get npm cache directory
-        id: npm-cache
-        run: |
-          echo "::set-output name=dir::$(npm config get cache)"
-
-      - uses: actions/cache@v2
-        with:
-          path: ${{ steps.npm-cache.outputs.dir }}
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      - name: Install deps
+      - name: Install dependencies
         run: npm ci
 
-      - name: Lint
-        if: matrix.os == 'ubuntu-20.04'
-        run: yarn lint
+      - name: Typecheck
+        run: npm run typecheck
 
       - name: Test
-        run: yarn test --ci --coverage --maxWorkers=2
+        run: npm test
 
-      - name: Build lib
-        run: yarn build
+      - name: Build library
+        run: npm run build
 
-      - name: Build storybook
-        run: yarn build-storybook
+      - name: Check formatting
+        if: matrix.full
+        run: npm run format:check
+
+      - name: Lint
+        if: matrix.full
+        run: npm run lint
+
+      - name: Check package size
+        if: matrix.full
+        run: npm run size
+
+      - name: Validate package metadata
+        if: matrix.full
+        run: npm run pack:check
+
+      - name: Test packed React 18 and 19 consumers
+        if: matrix.full
+        run: npm run test:package
+
+      - name: Build public Storybook
+        if: matrix.full
+        run: npm run build-storybook
 
       - name: Upload builds
-        if: matrix.os == 'ubuntu-20.04'
-        uses: actions/upload-artifact@v2
+        if: matrix.full
+        uses: actions/upload-artifact@v7
         with:
           name: builds
           path: |
-            ./dist
-            ./storybook-static
-  release:
-    name: Release
-    needs: build
-    runs-on: ubuntu-20.04
+            dist
+            storybook-static
+
+  react-18:
+    name: React 18.0 compatibility
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install React 18 compatibility matrix
+        run: npm install --no-save react@18.0.0 react-dom@18.0.0 @types/react@18 @types/react-dom@18
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+  browser:
+    name: Browser interaction tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium and WebKit
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: Test browser interactions
+        run: npm run test:browser
+
+      - name: Build library
+        run: npm run build
+
+      - name: Test packed browser consumers
+        run: npm run test:package:browser
+
+  release:
+    name: Release
+    if: >-
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/alpha')
+    needs: [validate, react-18, browser]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
       - name: Download builds
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v8
         with:
           name: builds
 
-      - name: Semantic Release
-        uses: cycjimmy/semantic-release-action@v2
-        with:
-          extra_plugins: |
-            @semantic-release/git
-            @semantic-release/changelog
+      - name: Publish release
+        run: npm run release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
   storybook:
-    name: Storybook
-    needs: build
-    runs-on: ubuntu-20.04
-    if: github.ref == 'refs/heads/master'
+    name: Deploy Storybook
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: [validate, react-18, browser]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
 
       - name: Download builds
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v8
         with:
           name: builds
 
       - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@4.1.0
+        uses: JamesIves/github-pages-deploy-action@v4.9.0
         with:
           branch: gh-pages
           folder: storybook-static

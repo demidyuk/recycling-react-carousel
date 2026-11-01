@@ -1,3 +1,38 @@
+# [2.0.0-alpha.3](https://github.com/demidyuk/recycling-react-carousel/compare/v2.0.0-alpha.2...v2.0.0-alpha.3) (2026-11-01)
+
+
+### Bug Fixes
+
+* keep visible slides interactive during animation ([1e70420](https://github.com/demidyuk/recycling-react-carousel/commit/1e70420401f5986def28a3f556dcb2cac4bf2713))
+
+# [2.0.0-alpha.2](https://github.com/demidyuk/recycling-react-carousel/compare/v2.0.0-alpha.1...v2.0.0-alpha.2) (2026-11-01)
+
+
+### Features
+
+* add momentum snapping and motion subscriptions ([9678626](https://github.com/demidyuk/recycling-react-carousel/commit/96786265ec33b3bbe26b6e2d9d37b3e8d30e842f))
+
+# [2.0.0-alpha.1](https://github.com/demidyuk/recycling-react-carousel/compare/v1.3.2...v2.0.0-alpha.1) (2026-11-01)
+
+
+* feat!: introduce the v2 carousel architecture and API ([b456bab](https://github.com/demidyuk/recycling-react-carousel/commit/b456bab90348752de8dd1a82c4afa88de4a8c2a5))
+* feat!: introduce the v2 carousel architecture and API ([2c41ce2](https://github.com/demidyuk/recycling-react-carousel/commit/2c41ce2755d229273e6222d16f5128d35201baaa))
+
+
+### Bug Fixes
+
+* let semantic-release configure npm authentication ([836e294](https://github.com/demidyuk/recycling-react-carousel/commit/836e2947be48c19e3b7346fad941d0fbdbcd0938))
+* restore alpha prereleases ([91df27a](https://github.com/demidyuk/recycling-react-carousel/commit/91df27afd707ceb3f81b9ac733af99cb329a9621))
+
+
+### BREAKING CHANGES
+
+* Replace legacy hooks and options with useCarousel and
+component configuration. Require Node >=22.18.0 and React 18 or 19.
+* Replace legacy hooks and configuration with useCarousel and
+component options including mode, axis, and animation. Require Node >=22.18.0
+and React 18 or 19.
+
 ## [1.3.2](https://github.com/demidyuk/recycling-react-carousel/compare/v1.3.1...v1.3.2) (2021-06-15)
 
 
